@@ -4,4 +4,4 @@
 - [Moving Square](01-FirstDay)
 
 ## Assignments
-- Links to assignments coming soon
+- [Interactive Scene](interactive-scene-assignment)
