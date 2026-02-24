@@ -1,7 +1,7 @@
 # CSC30 work
 
 ## Demos
--Links to demos coming soon
+- [Moving Square](01-FirstDay)
 
 ## Assignments
--Links to assignments coming soon
+- Links to assignments coming soon
