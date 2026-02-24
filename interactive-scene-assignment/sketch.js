@@ -24,12 +24,12 @@ let lastNodeTime;
 // [PLACEHOLDER]
 let paths = [
   [{x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 20}},
-  {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
-  {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
-  {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
-  {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(50, 0, 0)", frontCol: "rgb(25, 0, 0)"}},
-  {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(50, 0, 0)", frontCol: "rgb(25, 0, 0)"}},
-  {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 20}}]
+    {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
+    {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
+    {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
+    {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(50, 0, 0)", frontCol: "rgb(25, 0, 0)"}},
+    {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(50, 0, 0)", frontCol: "rgb(25, 0, 0)"}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 20}}]
 ];
 
 let viewSize = 800;
@@ -65,8 +65,8 @@ function drawBackground() {
   fill(backdrop.frontCol);
   
   // Draw a grid of shapes, filling the background of the canvas (centered on the capsule)
-  for (shapeX = -viewSize/2 + (viewSize/2 % (backdrop.spacing/2)) + (floor(capsule.x / (backdrop.spacing)) * (backdrop.spacing)); shapeX <= viewSize/2 + (ceil(capsule.x / (backdrop.spacing)) * (backdrop.spacing)); shapeX += backdrop.spacing) {
-    for (shapeY = -viewSize/2 + (viewSize/2 % (backdrop.spacing/2)) + (floor(capsule.y / (backdrop.spacing)) * (backdrop.spacing)); shapeY <= viewSize/2 + (ceil(capsule.y / (backdrop.spacing)) * (backdrop.spacing)); shapeY += backdrop.spacing) {
+  for (shapeX = -viewSize/2 + viewSize/2 % (backdrop.spacing/2) + floor(capsule.x / backdrop.spacing) * backdrop.spacing; shapeX <= viewSize/2 + ceil(capsule.x / backdrop.spacing) * backdrop.spacing; shapeX += backdrop.spacing) {
+    for (shapeY = -viewSize/2 + viewSize/2 % (backdrop.spacing/2) + floor(capsule.y / backdrop.spacing) * backdrop.spacing; shapeY <= viewSize/2 + ceil(capsule.y / backdrop.spacing) * backdrop.spacing; shapeY += backdrop.spacing) {
       //circle(shapeX, shapeY, map(mouseY, 0, viewSize, backdrop.size*1.5, backdrop.size*0.5));
     
       push();
@@ -91,8 +91,8 @@ function drawPaths() {
   let levelLines = paths[level];
   
   for (let lineIndex = 0; lineIndex < levelLines.length - 1; lineIndex += 1) {
-    let startNode = levelLines[lineIndex]
-    let endNode = levelLines[lineIndex + 1]  
+    let startNode = levelLines[lineIndex];
+    let endNode = levelLines[lineIndex + 1];  
     line(startNode.x, startNode.y, endNode.x, endNode.y);
   }
 }
@@ -106,8 +106,8 @@ function drawCapsule() {
 }
 
 function drawPlayer() {
-  noStroke()
-  fill(player.col)
+  noStroke();
+  fill(player.col);
   square(player.x, player.y, player.size);
 }
 
@@ -172,7 +172,7 @@ function moveCapsule() {
 
 function movePlayer() {
   if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
-    player.x += player.speed
+    player.x += player.speed;
   }
   if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
     player.x -= player.speed;
