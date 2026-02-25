@@ -1,8 +1,11 @@
 // Interactive Scene Assignment
 // Carsen Waters
-// February ##, 2026
+// March 3, 2026
 //
-// Extras for Experts: [PLACEHOLDER]
+// Extras for Experts:
+// - Resizing based on window size
+// - Objects for organizing information about player, capsule, backdrop, and level paths
+// - Additional p5js functions such as rectMode, angleMode, translate, scale, lerp, and push/pop
 
 let player = {x: 0, y: 0, size: 10, speed: 5, col: 255};
 
@@ -23,13 +26,13 @@ let lastNodeTime;
 
 // [PLACEHOLDER]
 let paths = [
-  [{x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 20}},
-    {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
-    {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
-    {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(0, 0, 25)", frontCol: "rgb(0, 0, 50)"}},
-    {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(50, 0, 0)", frontCol: "rgb(25, 0, 0)"}},
-    {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(50, 0, 0)", frontCol: "rgb(25, 0, 0)"}},
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 20}}]
+  [{x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
+    {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
+    {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
+    {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
+    {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(60, 0, 0)", frontCol: "rgb(30, 0, 0)"}},
+    {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(60, 0, 0)", frontCol: "rgb(30, 0, 0)"}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}}]
 ];
 
 let viewSize = 800;
@@ -47,10 +50,10 @@ function draw() {
   moveCapsule();
   movePlayer();
   
-  //
+  // Scale the scene so things take up the same space in the window regardless of how big it is
   scale(screenSize / viewSize, screenSize / viewSize);
   
-  // Draw everything centered on the capsule
+  // Translate the scene so everything is centered on the capsule
   translate(viewSize/2 - capsule.x, viewSize/2 - capsule.y);
   
   drawBackground();
@@ -67,7 +70,6 @@ function drawBackground() {
   // Draw a grid of shapes, filling the background of the canvas (centered on the capsule)
   for (shapeX = -viewSize/2 + viewSize/2 % (backdrop.spacing/2) + floor(capsule.x / backdrop.spacing) * backdrop.spacing; shapeX <= viewSize/2 + ceil(capsule.x / backdrop.spacing) * backdrop.spacing; shapeX += backdrop.spacing) {
     for (shapeY = -viewSize/2 + viewSize/2 % (backdrop.spacing/2) + floor(capsule.y / backdrop.spacing) * backdrop.spacing; shapeY <= viewSize/2 + ceil(capsule.y / backdrop.spacing) * backdrop.spacing; shapeY += backdrop.spacing) {
-      //circle(shapeX, shapeY, map(mouseY, 0, viewSize, backdrop.size*1.5, backdrop.size*0.5));
     
       push();
       translate(shapeX, shapeY);
@@ -112,7 +114,7 @@ function drawPlayer() {
 }
 
 function levelProgress() {
-  // Gets the current progress through the level and paths
+  // Gets the current progress through the level and through the paths
   levelPaths = paths[level];
   currentNodeIndex = 0;
   lastNodeTime = levelStartTime;
@@ -190,6 +192,7 @@ function movePlayer() {
 }
 
 function mousePressed() {
+  // Toggle if the level is playing (capsule is moving)
   if (!playingLevel) {
     playingLevel = true;
     levelStartTime = millis();
