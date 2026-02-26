@@ -24,7 +24,7 @@ let levelPaths;
 let currentNodeIndex;
 let lastNodeTime;
 
-// [PLACEHOLDER]
+// The points on the path of the capsule through the level
 let paths = [
   [{x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
     {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
