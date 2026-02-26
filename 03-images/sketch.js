@@ -2,16 +2,16 @@
 
 let pancakeImg;
 
-function preLoad() {
+function preload() {
   pancakeImg = loadImage("pancakes.jpg");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  image(CENTER);
+  imageMode(CENTER);
 }
 
 function draw() {
   background(220);
-  image(pancakeImg, pancakeImg.width / 2, mouseY, 100, 200);
+  image(pancakeImg, mouseX, mouseY, pancakeImg.width/2, pancakeImg.height/2);
 }
