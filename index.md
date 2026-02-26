@@ -3,6 +3,7 @@
 ## Demos
 - [Moving Square](01-first-day)
 - [Scope](02-scope)
+- [Adding Images](03-images)
 
 ## Assignments
 - [Interactive Scene](interactive-scene-assignment)
