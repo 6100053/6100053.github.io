@@ -63,24 +63,25 @@ function draw() {
 }
 
 function drawBackground() {
-  let levelBackdrop = levelStage.backdrop;
+  let currentBackdrop = levelStage.backdrop;
+  let shapeSpacing = currentBackdrop.spacing;
 
-  background(levelBackdrop.backCol);
+  background(currentBackdrop.backCol);
   noStroke();
-  fill(levelBackdrop.frontCol);
+  fill(currentBackdrop.frontCol);
   
   // Draw a grid of shapes, filling the background of the canvas (centered on the capsule)
-  for (shapeX = -viewSize/2 + viewSize/2 % (levelBackdrop.spacing/2) + floor(levelStage.capsule.x / levelBackdrop.spacing) * levelBackdrop.spacing; shapeX <= viewSize/2 + ceil(levelStage.capsule.x / levelBackdrop.spacing) * levelBackdrop.spacing; shapeX += levelBackdrop.spacing) {
-    for (shapeY = -viewSize/2 + viewSize/2 % (levelBackdrop.spacing/2) + floor(levelStage.capsule.y / levelBackdrop.spacing) * levelBackdrop.spacing; shapeY <= viewSize/2 + ceil(levelStage.capsule.y / levelBackdrop.spacing) * levelBackdrop.spacing; shapeY += levelBackdrop.spacing) {
+  for (shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
+    for (shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
     
       push();
       translate(shapeX, shapeY);
-      rotate(levelBackdrop.angle);
-      if (levelBackdrop.shape === "square") {
-        square(0, 0, levelBackdrop.size);
-      }
-      else if (levelBackdrop.shape === "circle") {
-        circle(0, 0, levelBackdrop.size);
+      rotate(currentBackdrop.angle);
+
+      if (currentBackdrop.shape === "square") {
+        square(0, 0, currentBackdrop.size);
+      } else if (currentBackdrop.shape === "circle") {
+        circle(0, 0, currentBackdrop.size);
       }
       pop();
     }
@@ -88,7 +89,7 @@ function drawBackground() {
 }
 
 function drawPaths() {
-  // Draw the path for the capsule for the current level
+  // Draw the path of the capsule for the current level
   stroke(levelStage.path.col);
   strokeWeight(levelStage.path.border);
   
@@ -97,22 +98,27 @@ function drawPaths() {
   for (let lineIndex = 0; lineIndex < levelLines.length - 1; lineIndex += 1) {
     let startNode = levelLines[lineIndex];
     let endNode = levelLines[lineIndex + 1];  
+
     line(startNode.x, startNode.y, endNode.x, endNode.y);
   }
 }
 
 function drawCapsule() {
   // Draws the capsule so that the border is entirely on the outside
+  let currentCapsule = levelStage.capsule;
+  
   noFill();
-  stroke(levelStage.capsule.col);
-  strokeWeight(levelStage.capsule.border);
-  rect(levelStage.capsule.x, levelStage.capsule.y, levelStage.capsule.w + levelStage.capsule.border, levelStage.capsule.h + levelStage.capsule.border);
+  stroke(currentCapsule.col);
+  strokeWeight(currentCapsule.border);
+  rect(currentCapsule.x, currentCapsule.y, currentCapsule.w + currentCapsule.border, currentCapsule.h + currentCapsule.border);
 }
 
 function drawPlayer() {
+  let currentPlayer = levelStage.player;
+
   noStroke();
-  fill(levelStage.player.col);
-  square(levelStage.player.x, levelStage.player.y, levelStage.player.size);
+  fill(currentPlayer.col);
+  square(currentPlayer.x, currentPlayer.y, currentPlayer.size);
 }
 
 function levelProgress() {
@@ -123,74 +129,81 @@ function levelProgress() {
   
   if (levelStage.playing) { 
     for (let nodeIndex = 0; nodeIndex < levelStage.nodes.length; nodeIndex += 1) {
+
       if (millis() - levelStage.startTime >= levelStage.nodes[nodeIndex].time) {
         levelStage.currentNodeIndex = nodeIndex;
-        levelStage.lastNodeTime = levelStage.startTime + levelStage.nodes[nodeIndex].time;  
+        levelStage.lastNodeTime = levelStage.startTime + levelStage.nodes[nodeIndex].time;
+
         if (nodeIndex >= levelStage.nodes.length - 1) {
           levelStage.playing = false;
         }
-      }
-      else {
+      } else {
         break;
       }
+
     }
   }
 }
 
 function moveCapsule() {
   // Move the capsule along the path, or keep it at the start
-  if (levelStage.playing) {
-    let currentPath = levelStage.nodes[levelStage.currentNodeIndex];
-    let nextPath = levelStage.nodes[levelStage.currentNodeIndex + 1];
-    let timeBetweenNodes = nextPath.time - currentPath.time;
-    let timeSinceLastNode = millis() - levelStage.lastNodeTime;
+  let levelCapsule = levelStage.capsule;
+  let levelBackdrop = levelStage.backdrop;
 
-    levelStage.capsule.x = lerp(currentPath.x, nextPath.x, timeSinceLastNode / timeBetweenNodes);
-    levelStage.capsule.y = lerp(currentPath.y, nextPath.y, timeSinceLastNode / timeBetweenNodes);
-    levelStage.capsule.w = lerp(currentPath.capsuleW, nextPath.capsuleW, timeSinceLastNode / timeBetweenNodes);
-    levelStage.capsule.h = lerp(currentPath.capsuleH, nextPath.capsuleH, timeSinceLastNode / timeBetweenNodes);
+  let currentPath = levelStage.nodes[levelStage.currentNodeIndex];
+  let nextPath = levelStage.nodes[levelStage.currentNodeIndex + 1];
   
-    levelStage.backdrop.shape = currentPath.backdropData.shape;
-    levelStage.backdrop.spacing = currentPath.backdropData.spacing;
-    levelStage.backdrop.size = lerp(currentPath.backdropData.size, nextPath.backdropData.size, timeSinceLastNode / timeBetweenNodes);
-    levelStage.backdrop.angle = lerp(currentPath.backdropData.angle, nextPath.backdropData.angle, timeSinceLastNode / timeBetweenNodes);
-    levelStage.backdrop.backCol = lerpColor(color(currentPath.backdropData.backCol), color(nextPath.backdropData.backCol), timeSinceLastNode / timeBetweenNodes);
-    levelStage.backdrop.frontCol = lerpColor(color(currentPath.backdropData.frontCol), color(nextPath.backdropData.frontCol), timeSinceLastNode / timeBetweenNodes);
-  }
-  else {
-    let currentPath = levelStage.nodes[levelStage.currentNodeIndex];
+  if (levelStage.playing) {
+    // Time since the last node divided by the time between the last and next node
+    let amountBetweenNodes = (millis() - levelStage.lastNodeTime) / (nextPath.time - currentPath.time);
 
-    levelStage.capsule.x = currentPath.x;
-    levelStage.capsule.y = currentPath.y;
-    levelStage.capsule.w = currentPath.capsuleW;
-    levelStage.capsule.h = currentPath.capsuleH;
+    levelCapsule.x = lerp(currentPath.x, nextPath.x, amountBetweenNodes);
+    levelCapsule.y = lerp(currentPath.y, nextPath.y, amountBetweenNodes);
+    levelCapsule.w = lerp(currentPath.capsuleW, nextPath.capsuleW, amountBetweenNodes);
+    levelCapsule.h = lerp(currentPath.capsuleH, nextPath.capsuleH, amountBetweenNodes);
+  
+    levelBackdrop.shape = currentPath.backdropData.shape;
+    levelBackdrop.spacing = currentPath.backdropData.spacing;
+    levelBackdrop.size = lerp(currentPath.backdropData.size, nextPath.backdropData.size, amountBetweenNodes);
+    levelBackdrop.angle = lerp(currentPath.backdropData.angle, nextPath.backdropData.angle, amountBetweenNodes);
+    levelBackdrop.backCol = lerpColor(color(currentPath.backdropData.backCol), color(nextPath.backdropData.backCol), amountBetweenNodes);
+    levelBackdrop.frontCol = lerpColor(color(currentPath.backdropData.frontCol), color(nextPath.backdropData.frontCol), amountBetweenNodes);
     
-    levelStage.backdrop.shape = currentPath.backdropData.shape;
-    levelStage.backdrop.spacing = currentPath.backdropData.spacing;
-    levelStage.backdrop.size = currentPath.backdropData.size;
-    levelStage.backdrop.angle = currentPath.backdropData.angle;
-    levelStage.backdrop.backCol = color(currentPath.backdropData.backCol);
-    levelStage.backdrop.frontCol = color(currentPath.backdropData.frontCol);
+  } else {
+    levelCapsule.x = currentPath.x;
+    levelCapsule.y = currentPath.y;
+    levelCapsule.w = currentPath.capsuleW;
+    levelCapsule.h = currentPath.capsuleH;
+    
+    levelBackdrop.shape = currentPath.backdropData.shape;
+    levelBackdrop.spacing = currentPath.backdropData.spacing;
+    levelBackdrop.size = currentPath.backdropData.size;
+    levelBackdrop.angle = currentPath.backdropData.angle;
+    levelBackdrop.backCol = color(currentPath.backdropData.backCol);
+    levelBackdrop.frontCol = color(currentPath.backdropData.frontCol);
   }
 }
 
 function movePlayer() {
+  let levelPlayer = levelStage.player;
+  let currentCapsule = levelStage.capsule;
+
   if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
-    levelStage.player.x += levelStage.player.speed;
+    levelPlayer.x += levelPlayer.speed;
   }
   if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
-    levelStage.player.x -= levelStage.player.speed;
+    levelPlayer.x -= levelPlayer.speed;
   }
   if (keyIsDown(40) || keyIsDown(83)) { // Down arrow or S key
-    levelStage.player.y += levelStage.player.speed;
+    levelPlayer.y += levelPlayer.speed;
   }
   if (keyIsDown(38) || keyIsDown(87)) { // Up arrow or W key
-    levelStage.player.y -= levelStage.player.speed;
+    levelPlayer.y -= levelPlayer.speed;
   }
   
   // Keep the player in the capsule
-  levelStage.player.x = constrain(levelStage.player.x, levelStage.capsule.x - (levelStage.capsule.w/2 - levelStage.player.size/2), levelStage.capsule.x + (levelStage.capsule.w/2 - levelStage.player.size/2));
-  levelStage.player.y = constrain(levelStage.player.y, levelStage.capsule.y - (levelStage.capsule.h/2 - levelStage.player.size/2), levelStage.capsule.y + (levelStage.capsule.h/2 - levelStage.player.size/2));
+  levelPlayer.x = constrain(levelPlayer.x, currentCapsule.x - (currentCapsule.w/2 - levelPlayer.size/2), currentCapsule.x + (currentCapsule.w/2 - levelPlayer.size/2));
+  levelPlayer.y = constrain(levelPlayer.y, currentCapsule.y - (currentCapsule.h/2 - levelPlayer.size/2), currentCapsule.y + (currentCapsule.h/2 - levelPlayer.size/2));
 }
 
 function mousePressed() {
@@ -198,8 +211,8 @@ function mousePressed() {
   if (!levelStage.playing) {
     levelStage.playing = true;
     levelStage.startTime = millis();
-  }
-  else {
+    
+  } else {
     levelStage.playing = false;
     levelStage.player.x = 0;
     levelStage.player.y = 0;

@@ -449,7 +449,7 @@ export default [
       curly: ["warn", "all"],
       eqeqeq: ["warn", "always"],
       "no-floating-decimal": ["warn"],
-      "brace-style": ["warn", "stroustrup"],
+      "brace-style": ["warn", "1tbs"],
       "no-var": ["error"],
       "no-cond-assign": ["error", "always"],
       "no-unused-vars": "off",
