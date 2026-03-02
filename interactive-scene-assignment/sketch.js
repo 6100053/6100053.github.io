@@ -4,12 +4,13 @@
 //
 // Extras for Experts:
 // - Resizing based on window size
-// - Objects for organizing information about player, capsule, backdrop, and level nodes (Added before in-class object demo)
+// - Objects and arrays for organizing information about player, capsule, backdrop, and level nodes (Added before in-class object demo)
 // - Additional p5js functions such as rectMode, angleMode, translate, scale, lerp, and push/pop
 
 
 let level = 0;
 
+/////////////////////////////PLACEHOLDER!! JUST CHECK COMMENTS
 let levelStage = {
   playing: false,
   startTime: 0,
