@@ -4,13 +4,11 @@
 //
 // Extras for Experts:
 // - Resizing based on window size
-// - Objects and arrays for organizing information about player, capsule, backdrop, and level nodes (Added before in-class object demo)
+// - Objects and arrays for organizing information about player, capsule, backdrop, and level nodes (Added before in-class object/array demos)
 // - Additional p5js functions such as rectMode, angleMode, translate, scale, lerp, and push/pop
 
 
-let level = 0;
-
-/////////////////////////////PLACEHOLDER!! JUST CHECK COMMENTS
+// This object holds all the information for when a level is being played (This is currently the only game state)
 let levelStage = {
   playing: false,
   startTime: 0,
@@ -25,21 +23,26 @@ let levelStage = {
   lastNodeTime: 0
 };
 
-// The points on the path of the capsule through the level
+let level = 0;
+
+// The points on the path of the capsule through each level (There's only one level currently)
 let allNodes = [
-  [{x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
+  [
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
     {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
     {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
     {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
     {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(60, 0, 0)", frontCol: "rgb(30, 0, 0)"}},
     {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(60, 0, 0)", frontCol: "rgb(30, 0, 0)"}},
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}}]
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}}
+  ]
 ];
 
 let viewSize = 800;
 let screenSize;
 
 function setup() {
+  // Make the canvas square, and set modes for drawing
   screenSize = min(windowWidth, windowHeight);
   createCanvas(screenSize, screenSize);
   rectMode(CENTER);
@@ -52,8 +55,8 @@ function draw() {
   movePlayer();
   
   // Scale the scene so things take up the same space in the window regardless of how big it is
-  scale(screenSize / viewSize, screenSize / viewSize);
-  
+  scale(screenSize / viewSize);
+
   // Translate the scene so everything is centered on the capsule
   translate(viewSize/2 - levelStage.capsule.x, viewSize/2 - levelStage.capsule.y);
   
@@ -74,7 +77,6 @@ function drawBackground() {
   // Draw a grid of shapes, filling the background of the canvas (centered on the capsule)
   for (shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
     for (shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
-    
       push();
       translate(shapeX, shapeY);
       rotate(currentBackdrop.angle);
