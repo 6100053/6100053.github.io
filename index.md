@@ -5,6 +5,7 @@
 - [Scope](02-scope)
 - [Adding Images](03-images)
 - [Ball Array](04-ball-array)
+- [Generative Tiles](05-tiles)
 
 ## Assignments
 - [Interactive Scene](interactive-scene-assignment)
