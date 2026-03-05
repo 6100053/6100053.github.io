@@ -7,8 +7,9 @@
 - [Ball Array](04-ball-array)
 - [Generative Tiles](05-tiles)
 
-## Assignments
+## Assignments (All working towards my SDS)
 - [Interactive Scene](interactive-scene-assignment)
+- [Arrays and Object Notation](array-object-assignment)
 
 
 #### Will maybe add projects from web editor?
