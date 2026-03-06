@@ -3,10 +3,11 @@
 // March ##, 2026
 //
 // Extras for Experts:
-// -------------describe what you did to take this project "above and beyond"
+// - Handling of window resizing while the project is running
+// -----
 
 
-// This object holds all the information for when a level is being played (This is currently the only game state)
+// This object holds all the information for when a level is being played
 let levelStage = {
   playing: false,
   startTime: 0,
@@ -45,6 +46,23 @@ function setup() {
   createCanvas(screenSize, screenSize);
   rectMode(CENTER);
   angleMode(DEGREES);
+
+  setGameStage("level");
+}
+
+function windowResized() {
+  screenSize = min(windowWidth, windowHeight);
+  resizeCanvas(screenSize, screenSize);
+}
+
+function setGameStage(stage) {
+  gameStage = stage;
+
+  if (stage === "level") {
+    levelStage.nodes = allNodes[level];
+    levelStage.startTime = millis();
+    levelStage.playing = false;
+  }
 }
 
 function draw() {
@@ -124,7 +142,6 @@ function drawPlayer() {
 
 function levelProgress() {
   // Gets the current progress through the level and through the paths
-  levelStage.nodes = allNodes[level];
   levelStage.currentNodeIndex = 0;
   levelStage.lastNodeTime = levelStage.startTime;
   
