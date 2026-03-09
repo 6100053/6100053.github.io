@@ -6,7 +6,6 @@
 // - Handling of window resizing while the project is running
 // -----
 
-//((add map game state))
 
 //////// Data for the game's levels (There's only one level currently) //////// (maybe make constants?)
 
@@ -57,7 +56,11 @@ function windowResized() {
 function setGameStage(stage, levelIndex) {
   gameStage = stage;
 
-  if (stage === "level") {
+  if (stage === "world") {
+    player = {x: 0, y: 0, size: 20, speed: 10, col: 255};
+    backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backCol: 30, frontCol: 0};
+
+  } else if (stage === "level") {
     levelStage.levelObject = levels[levelIndex];
     levelStage.startTime = millis();
     levelStage.playing = false;
@@ -72,35 +75,90 @@ function setGameStage(stage, levelIndex) {
 }
 
 function draw() {
-  levelProgress();
-  moveCapsule();
-  movePlayer();
-  
-  // Scale the scene so things take up the same space in the window regardless of how big it is
-  scale(screenSize / viewSize);
+  if (gameStage === "world") {
+    movePlayer();
 
-  // Translate the scene so everything is centered on the capsule
-  translate(viewSize/2 - levelStage.capsule.x, viewSize/2 - levelStage.capsule.y);
-  
-  drawBackground();
-  drawPaths();
-  drawCapsule();
-  drawPlayer();
+    prepareDrawing();
+    drawBackground();
+    drawPlayer();
+    
+  } else if (gameStage === "level") {
+    levelProgress();
+    moveCapsule();
+    movePlayer();
+    
+    prepareDrawing();
+    drawBackground();
+    drawPaths();
+    drawCapsule();
+    drawPlayer();
+  }
 }
 
 // (Organize these functions according to draw loop I think)
 
-// (always called, if/else for game state)
+// (always called, if/else for game state if needed)
+function movePlayer() {
+  if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
+    player.x += player.speed;
+  }
+  if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
+    player.x -= player.speed;
+  }
+  if (keyIsDown(40) || keyIsDown(83)) { // Down arrow or S key
+    player.y += player.speed;
+  }
+  if (keyIsDown(38) || keyIsDown(87)) { // Up arrow or W key
+    player.y -= player.speed;
+  }
+  
+  if (gameStage === "world") {
+    // Interactions with world walls etc.
+
+  } else if (gameStage === "level") {
+    // Keep the player in the capsule
+    let currentCapsule = levelStage.capsule;
+
+    player.x = constrain(player.x, currentCapsule.x - (currentCapsule.w/2 - player.size/2), currentCapsule.x + (currentCapsule.w/2 - player.size/2));
+    player.y = constrain(player.y, currentCapsule.y - (currentCapsule.h/2 - player.size/2), currentCapsule.y + (currentCapsule.h/2 - player.size/2));
+  }
+}
+
+function prepareDrawing() {
+  // Scale the scene so things take up the same space in the window regardless of how big it is
+  scale(screenSize / viewSize);
+
+  // Translate the scene so everything is centered on the player (in world state) or the capsule (in game state)
+  if (gameStage === "world") {
+    translate(viewSize/2 - player.x, viewSize/2 - player.y);
+
+  } else if (gameStage === "level") {
+    translate(viewSize/2 - levelStage.capsule.x, viewSize/2 - levelStage.capsule.y);
+
+  }
+}
+
 function drawBackground() {
+  // Center the drawing on the player (in world state) or the capsule (in game state)
+  let focusX;
+  let focusY;
+  if (gameStage === "world") {
+    focusX = player.x;
+    focusY = player.y;
+  } else if (gameStage === "level") {
+    focusX = levelStage.capsule.x;
+    focusY = levelStage.capsule.y;
+  }
+
   let shapeSpacing = backdrop.spacing;
 
   background(backdrop.backCol);
   noStroke();
   fill(backdrop.frontCol);
   
-  // Draw a grid of shapes, filling the background of the canvas (centered on the capsule)
-  for (shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
-    for (shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
+  // Draw a grid of shapes, filling the background of the canvas
+  for (shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(focusX / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(focusX / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
+    for (shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(focusY / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(focusY / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
       push();
       translate(shapeX, shapeY);
       rotate(backdrop.angle);
@@ -121,53 +179,7 @@ function drawPlayer() {
   square(player.x, player.y, player.size);
 }
 
-function movePlayer() {
-  let currentCapsule = levelStage.capsule;
-
-  if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
-    player.x += player.speed;
-  }
-  if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
-    player.x -= player.speed;
-  }
-  if (keyIsDown(40) || keyIsDown(83)) { // Down arrow or S key
-    player.y += player.speed;
-  }
-  if (keyIsDown(38) || keyIsDown(87)) { // Up arrow or W key
-    player.y -= player.speed;
-  }
-  
-  // Keep the player in the capsule
-  player.x = constrain(player.x, currentCapsule.x - (currentCapsule.w/2 - player.size/2), currentCapsule.x + (currentCapsule.w/2 - player.size/2));
-  player.y = constrain(player.y, currentCapsule.y - (currentCapsule.h/2 - player.size/2), currentCapsule.y + (currentCapsule.h/2 - player.size/2));
-}
-
 // (in-level only)
-function drawPaths() {
-  // Draw the path of the capsule for the current level
-  stroke(levelStage.path.col);
-  strokeWeight(levelStage.path.border);
-  
-  let levelLines = levelStage.levelObject.nodes;
-  
-  for (let lineIndex = 0; lineIndex < levelLines.length - 1; lineIndex += 1) {
-    let startNode = levelLines[lineIndex];
-    let endNode = levelLines[lineIndex + 1];  
-
-    line(startNode.x, startNode.y, endNode.x, endNode.y);
-  }
-}
-
-function drawCapsule() {
-  // Draws the capsule so that the border is entirely on the outside
-  let currentCapsule = levelStage.capsule;
-  
-  noFill();
-  stroke(currentCapsule.col);
-  strokeWeight(currentCapsule.border);
-  rect(currentCapsule.x, currentCapsule.y, currentCapsule.w + currentCapsule.border, currentCapsule.h + currentCapsule.border);
-}
-
 function levelProgress() {
   // Gets the current progress through the level and through the paths
   levelStage.currentNodeIndex = 0;
@@ -229,16 +241,43 @@ function moveCapsule() {
   }
 }
 
+function drawPaths() {
+  // Draw the path of the capsule for the current level
+  stroke(levelStage.path.col);
+  strokeWeight(levelStage.path.border);
+  
+  let levelLines = levelStage.levelObject.nodes;
+  
+  for (let lineIndex = 0; lineIndex < levelLines.length - 1; lineIndex += 1) {
+    let startNode = levelLines[lineIndex];
+    let endNode = levelLines[lineIndex + 1];  
+
+    line(startNode.x, startNode.y, endNode.x, endNode.y);
+  }
+}
+
+function drawCapsule() {
+  // Draws the capsule so that the border is entirely on the outside
+  let currentCapsule = levelStage.capsule;
+  
+  noFill();
+  stroke(currentCapsule.col);
+  strokeWeight(currentCapsule.border);
+  rect(currentCapsule.x, currentCapsule.y, currentCapsule.w + currentCapsule.border, currentCapsule.h + currentCapsule.border);
+}
+
 // (Can delete once level entering and starting in place)
 function mousePressed() {
+  if (gameStage === "level") {
   // Toggle if the level is playing (capsule is moving)
-  if (!levelStage.playing) {
-    levelStage.playing = true;
-    levelStage.startTime = millis();
+    if (!levelStage.playing) {
+      levelStage.playing = true;
+      levelStage.startTime = millis();
     
-  } else {
-    levelStage.playing = false;
-    player.x = 0;
-    player.y = 0;
+    } else {
+      levelStage.playing = false;
+      player.x = 0;
+      player.y = 0;
+    }
   }
 }
