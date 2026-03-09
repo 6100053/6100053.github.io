@@ -6,25 +6,11 @@
 // - Handling of window resizing while the project is running
 // -----
 
+//((add map game state))
 
-// This object holds all the information for when a level is being played
-let levelStage = {
-  playing: false,
-  startTime: 0,
+//////// Data for the game's levels (There's only one level currently) //////// (maybe make constants?)
 
-  player: {x: 0, y: 0, size: 10, speed: 5, col: 255},
-  capsule: {x: 0, y: 0, w: 100, h: 100, border: 5, col: 100},
-  backdrop: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 0},
-  path: {border: 5, col: 75},
-
-  nodes: {},
-  currentNodeIndex: 0,
-  lastNodeTime: 0
-};
-
-let level = 0;
-
-// The points on the path of the capsule through each level (There's only one level currently)
+// The points on the path of the capsule through each level
 let allNodes = [
   [
     {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
@@ -37,6 +23,19 @@ let allNodes = [
   ]
 ];
 
+let levels = [
+  {name: "Test name", nodes: allNodes[0]}
+];
+
+//////// Variables for playing the game ////////
+let gameStage;
+
+let player;
+let backdrop;
+
+// This object holds all the information for when a level is being played
+let levelStage = {};
+
 let viewSize = 800;
 let screenSize;
 
@@ -47,7 +46,7 @@ function setup() {
   rectMode(CENTER);
   angleMode(DEGREES);
 
-  setGameStage("level");
+  setGameStage("level", 0);
 }
 
 function windowResized() {
@@ -55,13 +54,20 @@ function windowResized() {
   resizeCanvas(screenSize, screenSize);
 }
 
-function setGameStage(stage) {
+function setGameStage(stage, levelIndex) {
   gameStage = stage;
 
   if (stage === "level") {
-    levelStage.nodes = allNodes[level];
+    levelStage.levelObject = levels[levelIndex];
     levelStage.startTime = millis();
     levelStage.playing = false;
+    
+    // ((set player + path + those 2 capsule properties to stucturedclones of propeties of levels object?))
+    player = {x: 0, y: 0, size: 10, speed: 5, col: 255};
+    backdrop = {};
+
+    levelStage.capsule = {border: 5, col: 100};
+    levelStage.path = {border: 5, col: 75};
   }
 }
 
@@ -82,37 +88,67 @@ function draw() {
   drawPlayer();
 }
 
-function drawBackground() {
-  let currentBackdrop = levelStage.backdrop;
-  let shapeSpacing = currentBackdrop.spacing;
+// (Organize these functions according to draw loop I think)
 
-  background(currentBackdrop.backCol);
+// (always called, if/else for game state)
+function drawBackground() {
+  let shapeSpacing = backdrop.spacing;
+
+  background(backdrop.backCol);
   noStroke();
-  fill(currentBackdrop.frontCol);
+  fill(backdrop.frontCol);
   
   // Draw a grid of shapes, filling the background of the canvas (centered on the capsule)
   for (shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(levelStage.capsule.x / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
     for (shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(levelStage.capsule.y / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
       push();
       translate(shapeX, shapeY);
-      rotate(currentBackdrop.angle);
+      rotate(backdrop.angle);
 
-      if (currentBackdrop.shape === "square") {
-        square(0, 0, currentBackdrop.size);
-      } else if (currentBackdrop.shape === "circle") {
-        circle(0, 0, currentBackdrop.size);
+      if (backdrop.shape === "square") {
+        square(0, 0, backdrop.size);
+      } else if (backdrop.shape === "circle") {
+        circle(0, 0, backdrop.size);
       }
       pop();
     }
   }
 }
 
+function drawPlayer() {
+  noStroke();
+  fill(player.col);
+  square(player.x, player.y, player.size);
+}
+
+function movePlayer() {
+  let currentCapsule = levelStage.capsule;
+
+  if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
+    player.x += player.speed;
+  }
+  if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
+    player.x -= player.speed;
+  }
+  if (keyIsDown(40) || keyIsDown(83)) { // Down arrow or S key
+    player.y += player.speed;
+  }
+  if (keyIsDown(38) || keyIsDown(87)) { // Up arrow or W key
+    player.y -= player.speed;
+  }
+  
+  // Keep the player in the capsule
+  player.x = constrain(player.x, currentCapsule.x - (currentCapsule.w/2 - player.size/2), currentCapsule.x + (currentCapsule.w/2 - player.size/2));
+  player.y = constrain(player.y, currentCapsule.y - (currentCapsule.h/2 - player.size/2), currentCapsule.y + (currentCapsule.h/2 - player.size/2));
+}
+
+// (in-level only)
 function drawPaths() {
   // Draw the path of the capsule for the current level
   stroke(levelStage.path.col);
   strokeWeight(levelStage.path.border);
   
-  let levelLines = allNodes[level];
+  let levelLines = levelStage.levelObject.nodes;
   
   for (let lineIndex = 0; lineIndex < levelLines.length - 1; lineIndex += 1) {
     let startNode = levelLines[lineIndex];
@@ -132,27 +168,19 @@ function drawCapsule() {
   rect(currentCapsule.x, currentCapsule.y, currentCapsule.w + currentCapsule.border, currentCapsule.h + currentCapsule.border);
 }
 
-function drawPlayer() {
-  let currentPlayer = levelStage.player;
-
-  noStroke();
-  fill(currentPlayer.col);
-  square(currentPlayer.x, currentPlayer.y, currentPlayer.size);
-}
-
 function levelProgress() {
   // Gets the current progress through the level and through the paths
   levelStage.currentNodeIndex = 0;
   levelStage.lastNodeTime = levelStage.startTime;
   
   if (levelStage.playing) { 
-    for (let nodeIndex = 0; nodeIndex < levelStage.nodes.length; nodeIndex += 1) {
+    for (let nodeIndex = 0; nodeIndex < levelStage.levelObject.nodes.length; nodeIndex += 1) {
 
-      if (millis() - levelStage.startTime >= levelStage.nodes[nodeIndex].time) {
+      if (millis() - levelStage.startTime >= levelStage.levelObject.nodes[nodeIndex].time) {
         levelStage.currentNodeIndex = nodeIndex;
-        levelStage.lastNodeTime = levelStage.startTime + levelStage.nodes[nodeIndex].time;
+        levelStage.lastNodeTime = levelStage.startTime + levelStage.levelObject.nodes[nodeIndex].time;
 
-        if (nodeIndex >= levelStage.nodes.length - 1) {
+        if (nodeIndex >= levelStage.levelObject.nodes.length - 1) {
           levelStage.playing = false;
         }
       } else {
@@ -166,10 +194,9 @@ function levelProgress() {
 function moveCapsule() {
   // Move the capsule along the path, or keep it at the start
   let levelCapsule = levelStage.capsule;
-  let levelBackdrop = levelStage.backdrop;
 
-  let currentPath = levelStage.nodes[levelStage.currentNodeIndex];
-  let nextPath = levelStage.nodes[levelStage.currentNodeIndex + 1];
+  let currentPath = levelStage.levelObject.nodes[levelStage.currentNodeIndex];
+  let nextPath = levelStage.levelObject.nodes[levelStage.currentNodeIndex + 1];
   
   if (levelStage.playing) {
     // Time since the last node divided by the time between the last and next node
@@ -180,12 +207,12 @@ function moveCapsule() {
     levelCapsule.w = lerp(currentPath.capsuleW, nextPath.capsuleW, amountBetweenNodes);
     levelCapsule.h = lerp(currentPath.capsuleH, nextPath.capsuleH, amountBetweenNodes);
   
-    levelBackdrop.shape = currentPath.backdropData.shape;
-    levelBackdrop.spacing = currentPath.backdropData.spacing;
-    levelBackdrop.size = lerp(currentPath.backdropData.size, nextPath.backdropData.size, amountBetweenNodes);
-    levelBackdrop.angle = lerp(currentPath.backdropData.angle, nextPath.backdropData.angle, amountBetweenNodes);
-    levelBackdrop.backCol = lerpColor(color(currentPath.backdropData.backCol), color(nextPath.backdropData.backCol), amountBetweenNodes);
-    levelBackdrop.frontCol = lerpColor(color(currentPath.backdropData.frontCol), color(nextPath.backdropData.frontCol), amountBetweenNodes);
+    backdrop.shape = currentPath.backdropData.shape;
+    backdrop.spacing = currentPath.backdropData.spacing;
+    backdrop.size = lerp(currentPath.backdropData.size, nextPath.backdropData.size, amountBetweenNodes);
+    backdrop.angle = lerp(currentPath.backdropData.angle, nextPath.backdropData.angle, amountBetweenNodes);
+    backdrop.backCol = lerpColor(color(currentPath.backdropData.backCol), color(nextPath.backdropData.backCol), amountBetweenNodes);
+    backdrop.frontCol = lerpColor(color(currentPath.backdropData.frontCol), color(nextPath.backdropData.frontCol), amountBetweenNodes);
     
   } else {
     levelCapsule.x = currentPath.x;
@@ -193,37 +220,16 @@ function moveCapsule() {
     levelCapsule.w = currentPath.capsuleW;
     levelCapsule.h = currentPath.capsuleH;
     
-    levelBackdrop.shape = currentPath.backdropData.shape;
-    levelBackdrop.spacing = currentPath.backdropData.spacing;
-    levelBackdrop.size = currentPath.backdropData.size;
-    levelBackdrop.angle = currentPath.backdropData.angle;
-    levelBackdrop.backCol = color(currentPath.backdropData.backCol);
-    levelBackdrop.frontCol = color(currentPath.backdropData.frontCol);
+    backdrop.shape = currentPath.backdropData.shape;
+    backdrop.spacing = currentPath.backdropData.spacing;
+    backdrop.size = currentPath.backdropData.size;
+    backdrop.angle = currentPath.backdropData.angle;
+    backdrop.backCol = color(currentPath.backdropData.backCol);
+    backdrop.frontCol = color(currentPath.backdropData.frontCol);
   }
 }
 
-function movePlayer() {
-  let levelPlayer = levelStage.player;
-  let currentCapsule = levelStage.capsule;
-
-  if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
-    levelPlayer.x += levelPlayer.speed;
-  }
-  if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
-    levelPlayer.x -= levelPlayer.speed;
-  }
-  if (keyIsDown(40) || keyIsDown(83)) { // Down arrow or S key
-    levelPlayer.y += levelPlayer.speed;
-  }
-  if (keyIsDown(38) || keyIsDown(87)) { // Up arrow or W key
-    levelPlayer.y -= levelPlayer.speed;
-  }
-  
-  // Keep the player in the capsule
-  levelPlayer.x = constrain(levelPlayer.x, currentCapsule.x - (currentCapsule.w/2 - levelPlayer.size/2), currentCapsule.x + (currentCapsule.w/2 - levelPlayer.size/2));
-  levelPlayer.y = constrain(levelPlayer.y, currentCapsule.y - (currentCapsule.h/2 - levelPlayer.size/2), currentCapsule.y + (currentCapsule.h/2 - levelPlayer.size/2));
-}
-
+// (Can delete once level entering and starting in place)
 function mousePressed() {
   // Toggle if the level is playing (capsule is moving)
   if (!levelStage.playing) {
@@ -232,7 +238,7 @@ function mousePressed() {
     
   } else {
     levelStage.playing = false;
-    levelStage.player.x = 0;
-    levelStage.player.y = 0;
+    player.x = 0;
+    player.y = 0;
   }
 }
