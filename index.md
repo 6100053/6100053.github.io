@@ -11,5 +11,7 @@
 - [Interactive Scene](interactive-scene-assignment)
 - [Arrays and Object Notation](array-object-assignment)
 
-
-#### Will maybe add projects from web editor?
+## [p5js Web Editor projects](https://editor.p5js.org/6100053/sketches)
+- [CSC30 Activities](https://editor.p5js.org/6100053/collections/r0UlQFdCI)
+- [Circle Space](https://editor.p5js.org/6100053/full/8y40tJwKG)
+- [Dodging Game](https://editor.p5js.org/6100053/full/N4f5dDKRF)
