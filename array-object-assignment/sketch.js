@@ -7,21 +7,22 @@
 // - p5.collide2d library for collision between shapes
 //
 
+/////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!/////////////////////is it okay to have variables named the same thing as p5 functions?
 
 //////// Data for the game's levels (There's only one level currently) //////// (maybe make constants?)
 
 // The points on the path of the capsule through each level
 let allNodes = [
   [
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 3000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
-    {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
-    {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
-    {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(0, 0, 30)", frontCol: "rgb(0, 0, 60)"}},
-    {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(60, 0, 0)", frontCol: "rgb(30, 0, 0)"}},
-    {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backCol: "rgb(60, 0, 0)", frontCol: "rgb(30, 0, 0)"}},
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}},
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 30000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30}}
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 3000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30}},
+    {x: 500, y: 0, capsuleW: 100, capsuleH: 100, time: 10000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: "rgb(0, 0, 30)", frontColor: "rgb(0, 0, 60)"}},
+    {x: 500, y: -200, capsuleW: 100, capsuleH: 100, time: 14000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backColor: "rgb(0, 0, 30)", frontColor: "rgb(0, 0, 60)"}},
+    {x: 200, y: -200, capsuleW: 100, capsuleH: 100, time: 15500, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backColor: "rgb(0, 0, 30)", frontColor: "rgb(0, 0, 60)"}},
+    {x: 200, y: -400, capsuleW: 200, capsuleH: 200, time: 20000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backColor: "rgb(60, 0, 0)", frontColor: "rgb(30, 0, 0)"}},
+    {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backColor: "rgb(60, 0, 0)", frontColor: "rgb(30, 0, 0)"}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 30000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30}}
   ]
 ];
 
@@ -30,22 +31,26 @@ let levels = [
 ];
 
 let worldPortals = [
-  {x: 400, y: 100, size: 100, col: "hsb(120, 50%, 75%)", level: levels[0]}
+  {x: 400, y: 100, size: 100, color: "hsb(120, 50%, 75%)", level: levels[0]}
 ];
 
 //////// Variables for playing the game ////////
-let gameStage;
+let gameState;
 
 let player;
 let backdrop;
 
-let lastWorldPlayer = {x: 0, y: 0, size: 10, speed: 5, col: 255};
+// Holds the player's information for when the world state is switched (so they return to the same place when finished a level)
+let lastWorldPlayer = {x: 0, y: 0, size: 10, speed: 5, color: 255};
 
 // This object holds all the information for when a level is being played
-let levelStage = {};
+let levelState = {};
 
+// Size of the view that the drawing will be scaled to
 let viewSize = 800;
 let screenSize;
+
+//////// Setup and running functions ////////
 
 function setup() {
   // Make the canvas square, and set modes for drawing
@@ -54,7 +59,7 @@ function setup() {
   rectMode(CENTER);
   angleMode(DEGREES);
 
-  setGameStage("world", 0);
+  setGameState("world", 0);
 }
 
 function windowResized() {
@@ -62,24 +67,25 @@ function windowResized() {
   resizeCanvas(screenSize, screenSize);
 }
 
-function setGameStage(stage, levelIndex) {
-  gameStage = stage;
+function setGameState(state, levelIndex) {
+  // Changes the game state, setting up the new state
+  gameState = state;
 
-  if (stage === "world") {
+  if (state === "world") {
     player = lastWorldPlayer;
-    backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backCol: 0, frontCol: 30};
+    backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30};
 
-  } else if (stage === "level") {
+  } else if (state === "level") {
     lastWorldPlayer = structuredClone(player);
 
-    levelStage.levelObject = levels[levelIndex];
-    levelStage.startTime = millis();
+    levelState.levelObject = levels[levelIndex];
+    levelState.startTime = millis();
     
-    player = {x: 0, y: 0, size: 10, speed: 5, col: 255};
+    player = {x: 0, y: 0, size: 10, speed: 5, color: 255};
     backdrop = {};
     
-    levelStage.capsule = {border: 5, col: 100};
-    levelStage.path = {border: 5, col: 75};
+    levelState.capsule = {border: 5, color: 100};
+    levelState.path = {border: 5, color: 75};
   }
   
   // Restart the draw loop
@@ -88,7 +94,7 @@ function setGameStage(stage, levelIndex) {
 }
 
 function draw() {
-  if (gameStage === "world") {
+  if (gameState === "world") {
     movePlayer();
 
     prepareDrawing();
@@ -96,7 +102,7 @@ function draw() {
     drawPortals();
     drawPlayer();
     
-  } else if (gameStage === "level") {
+  } else if (gameState === "level") {
     levelProgress();
     moveCapsule();
     movePlayer();
@@ -109,9 +115,8 @@ function draw() {
   }
 }
 
-// (Organize these functions according to draw loop I think)
+//////// Functions used in all game states ////////
 
-// (always called, if/else for game state if needed)
 function movePlayer() {
   if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
     player.x += player.speed;
@@ -126,20 +131,20 @@ function movePlayer() {
     player.y -= player.speed;
   }
   
-  if (gameStage === "world") {
-    // (Interactions with world walls etc.)
+  if (gameState === "world") {
+    // Collide or interact with world features
     for (let portal of worldPortals) {
       if (mouseIsPressed && collideRectCircle(player.x - player.size/2, player.y - player.size/2, player.size, player.size, portal.x, portal.y, portal.size)) {
-        setGameStage("level", 0);
+        setGameState("level", 0);
       }
     }
 
-  } else if (gameStage === "level") {
+  } else if (gameState === "level") {
     // Keep the player in the capsule
-    let currentCapsule = levelStage.capsule;
+    let currentCapsule = levelState.capsule;
 
-    player.x = constrain(player.x, currentCapsule.x - (currentCapsule.w/2 - player.size/2), currentCapsule.x + (currentCapsule.w/2 - player.size/2));
-    player.y = constrain(player.y, currentCapsule.y - (currentCapsule.h/2 - player.size/2), currentCapsule.y + (currentCapsule.h/2 - player.size/2));
+    player.x = constrain(player.x, currentCapsule.x - (currentCapsule.width/2 - player.size/2), currentCapsule.x + (currentCapsule.width/2 - player.size/2));
+    player.y = constrain(player.y, currentCapsule.y - (currentCapsule.height/2 - player.size/2), currentCapsule.y + (currentCapsule.height/2 - player.size/2));
   }
 }
 
@@ -148,11 +153,11 @@ function prepareDrawing() {
   scale(screenSize / viewSize);
 
   // Translate the scene so everything is centered on the player (in world state) or the capsule (in game state)
-  if (gameStage === "world") {
+  if (gameState === "world") {
     translate(viewSize/2 - player.x, viewSize/2 - player.y);
 
-  } else if (gameStage === "level") {
-    translate(viewSize/2 - levelStage.capsule.x, viewSize/2 - levelStage.capsule.y);
+  } else if (gameState === "level") {
+    translate(viewSize/2 - levelState.capsule.x, viewSize/2 - levelState.capsule.y);
 
   }
 }
@@ -161,23 +166,23 @@ function drawBackground() {
   // Center the drawing on the player (in world state) or the capsule (in game state)
   let focusX;
   let focusY;
-  if (gameStage === "world") {
+  if (gameState === "world") {
     focusX = player.x;
     focusY = player.y;
-  } else if (gameStage === "level") {
-    focusX = levelStage.capsule.x;
-    focusY = levelStage.capsule.y;
+  } else if (gameState === "level") {
+    focusX = levelState.capsule.x;
+    focusY = levelState.capsule.y;
   }
 
   let shapeSpacing = backdrop.spacing;
 
-  background(backdrop.backCol);
+  background(backdrop.backColor);
   noStroke();
-  fill(backdrop.frontCol);
+  fill(backdrop.frontColor);
   
-  // Draw a grid of shapes, filling the background of the canvas
-  for (shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(focusX / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(focusX / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
-    for (shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(focusY / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(focusY / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
+  // Draw a grid of shapes, filling just the background of the canvas
+  for (let shapeX = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(focusX / shapeSpacing) * shapeSpacing; shapeX <= viewSize/2 + ceil(focusX / shapeSpacing) * shapeSpacing; shapeX += shapeSpacing) {
+    for (let shapeY = -viewSize/2 + viewSize/2 % (shapeSpacing/2) + floor(focusY / shapeSpacing) * shapeSpacing; shapeY <= viewSize/2 + ceil(focusY / shapeSpacing) * shapeSpacing; shapeY += shapeSpacing) {
       push();
       translate(shapeX, shapeY);
       rotate(backdrop.angle);
@@ -193,34 +198,39 @@ function drawBackground() {
 }
 
 function drawPlayer() {
+  // Draw the player
   noStroke();
-  fill(player.col);
+  fill(player.color);
   square(player.x, player.y, player.size);
 }
 
-// (in world stage only)
+//////// Funcitons used in the world game state ////////
+
 function drawPortals() {
+  // Draw the world's portals (I will likely be update this to include other world features eventually)
   for (let portal of worldPortals) {
     noStroke();
-    fill(portal.col);
+    fill(portal.color);
     circle(portal.x, portal.y, portal.size);
   }
 }
 
-// (in-level only)
+//////// Functions used in the level game state ////////
+
 function levelProgress() {
   // Gets the current progress through the level and through the paths
-  levelStage.currentNodeIndex = 0;
-  levelStage.lastNodeTime = levelStage.startTime;
+  levelState.currentNodeIndex = 0;
+  levelState.lastNodeTime = levelState.startTime;
   
-  for (let nodeIndex = 0; nodeIndex < levelStage.levelObject.nodes.length; nodeIndex += 1) {
+  // Loop through the level's nodes, if the time before the capsule reaches the node has passed, set that node as the current one, PLACEHOLDER ADD MORE STUFF HERE AND BELOW
+  for (let nodeIndex = 0; nodeIndex < levelState.levelObject.nodes.length; nodeIndex += 1) {
 
-    if (millis() - levelStage.startTime >= levelStage.levelObject.nodes[nodeIndex].time) {
-      levelStage.currentNodeIndex = nodeIndex;
-      levelStage.lastNodeTime = levelStage.startTime + levelStage.levelObject.nodes[nodeIndex].time;
+    if (millis() - levelState.startTime >= levelState.levelObject.nodes[nodeIndex].time) {
+      levelState.currentNodeIndex = nodeIndex;
+      levelState.lastNodeTime = levelState.startTime + levelState.levelObject.nodes[nodeIndex].time;
 
-      if (nodeIndex >= levelStage.levelObject.nodes.length - 1) {
-        setGameStage("world", 0);
+      if (nodeIndex >= levelState.levelObject.nodes.length - 1) {
+        setGameState("world", 0);
       }
     } else {
       break;
@@ -230,33 +240,33 @@ function levelProgress() {
 
 function moveCapsule() {
   // Move the capsule along the path, or keep it at the start
-  let levelCapsule = levelStage.capsule;
+  let levelCapsule = levelState.capsule;
 
-  let currentPath = levelStage.levelObject.nodes[levelStage.currentNodeIndex];
-  let nextPath = levelStage.levelObject.nodes[levelStage.currentNodeIndex + 1];
+  let currentPath = levelState.levelObject.nodes[levelState.currentNodeIndex];
+  let nextPath = levelState.levelObject.nodes[levelState.currentNodeIndex + 1];
   
   // Time since the last node divided by the time between the last and next node
-  let amountBetweenNodes = (millis() - levelStage.lastNodeTime) / (nextPath.time - currentPath.time);
+  let amountBetweenNodes = (millis() - levelState.lastNodeTime) / (nextPath.time - currentPath.time);
 
   levelCapsule.x = lerp(currentPath.x, nextPath.x, amountBetweenNodes);
   levelCapsule.y = lerp(currentPath.y, nextPath.y, amountBetweenNodes);
-  levelCapsule.w = lerp(currentPath.capsuleW, nextPath.capsuleW, amountBetweenNodes);
-  levelCapsule.h = lerp(currentPath.capsuleH, nextPath.capsuleH, amountBetweenNodes);
+  levelCapsule.width = lerp(currentPath.capsuleW, nextPath.capsuleW, amountBetweenNodes);
+  levelCapsule.height = lerp(currentPath.capsuleH, nextPath.capsuleH, amountBetweenNodes);
   
   backdrop.shape = currentPath.backdropData.shape;
   backdrop.spacing = currentPath.backdropData.spacing;
   backdrop.size = lerp(currentPath.backdropData.size, nextPath.backdropData.size, amountBetweenNodes);
   backdrop.angle = lerp(currentPath.backdropData.angle, nextPath.backdropData.angle, amountBetweenNodes);
-  backdrop.backCol = lerpColor(color(currentPath.backdropData.backCol), color(nextPath.backdropData.backCol), amountBetweenNodes);
-  backdrop.frontCol = lerpColor(color(currentPath.backdropData.frontCol), color(nextPath.backdropData.frontCol), amountBetweenNodes);
+  backdrop.backColor = lerpColor(color(currentPath.backdropData.backColor), color(nextPath.backdropData.backColor), amountBetweenNodes);
+  backdrop.frontColor = lerpColor(color(currentPath.backdropData.frontColor), color(nextPath.backdropData.frontColor), amountBetweenNodes);
 }
 
 function drawPaths() {
   // Draw the path of the capsule for the current level
-  stroke(levelStage.path.col);
-  strokeWeight(levelStage.path.border);
+  stroke(levelState.path.color);
+  strokeWeight(levelState.path.border);
   
-  let levelLines = levelStage.levelObject.nodes;
+  let levelLines = levelState.levelObject.nodes;
   
   for (let lineIndex = 0; lineIndex < levelLines.length - 1; lineIndex += 1) {
     let startNode = levelLines[lineIndex];
@@ -268,10 +278,10 @@ function drawPaths() {
 
 function drawCapsule() {
   // Draws the capsule so that the border is entirely on the outside
-  let currentCapsule = levelStage.capsule;
+  let currentCapsule = levelState.capsule;
   
   noFill();
-  stroke(currentCapsule.col);
+  stroke(currentCapsule.color);
   strokeWeight(currentCapsule.border);
-  rect(currentCapsule.x, currentCapsule.y, currentCapsule.w + currentCapsule.border, currentCapsule.h + currentCapsule.border);
+  rect(currentCapsule.x, currentCapsule.y, currentCapsule.width + currentCapsule.border, currentCapsule.height + currentCapsule.border);
 }
