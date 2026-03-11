@@ -3,9 +3,9 @@
 // March 18, 2026
 //
 // Extras for Experts:
-// - Handling of window resizing while the project is running
+// - Handling of window resizing while the project is running (windowResized function)
 // - p5.collide2d library for collision between shapes
-//
+// - Color strings
 
 //////// Data for the game's levels (There's only one level currently) //////// (maybe make constants?)
 
@@ -21,15 +21,25 @@ let allNodes = [
     {x: 0, y: -200, capsuleW: 200, capsuleH: 200, time: 23000, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backColor: "rgb(60, 0, 0)", frontColor: "rgb(30, 0, 0)"}},
     {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 27000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30}},
     {x: 0, y: 0, capsuleW: 100, capsuleH: 100, time: 30000, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: 0, frontColor: 30}}
+  ],
+  [
+    {x: 0, y: 0, capsuleW: 150, capsuleH: 250, time: 0, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: 0, frontColor: "hsb(120, 50%, 10%)"}},
+    {x: 0, y: 0, capsuleW: 150, capsuleH: 250, time: 1000, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: 0, frontColor: "hsb(120, 50%, 10%)"}},
+    {x: 0, y: 500, capsuleW: 150, capsuleH: 250, time: 5000, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: 0, frontColor: "hsb(120, 50%, 10%)"}},
+    {x: -300, y: 500, capsuleW: 150, capsuleH: 250, time: 6000, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: 0, frontColor: "hsb(120, 50%, 10%)"}},
+    {x: -300, y: 500, capsuleW: 150, capsuleH: 100, time: 7000, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: 0, frontColor: 0}},
+    {x: -300, y: 500, capsuleW: 150, capsuleH: 100, time: 8000, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: 0, frontColor: 0}}
   ]
 ];
 
 let levels = [
-  {name: "Test name", nodes: allNodes[0]}
+  {name: "Test name", nodes: allNodes[0]},
+  {name: "Another level", nodes: allNodes[1]}
 ];
 
 let worldPortals = [
-  {x: 400, y: 100, size: 100, color: "hsb(120, 50%, 75%)", level: levels[0]}
+  {x: 400, y: 100, size: 100, color: "hsb(240, 50%, 75%)", level: levels[0]},
+  {x: -200, y: -300, size: 50, color: "hsb(120, 50%, 75%)", level: levels[1]}
 ];
 
 //////// Variables for playing the game ////////
@@ -57,7 +67,7 @@ function setup() {
   rectMode(CENTER);
   angleMode(DEGREES);
 
-  setGameState("world", 0);
+  setGameState("world");
 }
 
 function windowResized() {
@@ -65,7 +75,7 @@ function windowResized() {
   resizeCanvas(screenSize, screenSize);
 }
 
-function setGameState(state, levelIndex) {
+function setGameState(state, level = []) {
   // Changes the game state, setting up the new state
   gameState = state;
 
@@ -76,7 +86,7 @@ function setGameState(state, levelIndex) {
   } else if (state === "level") {
     lastWorldPlayer = structuredClone(player);
 
-    levelState.levelObject = levels[levelIndex];
+    levelState.levelObject = level;
     levelState.startTime = millis();
     
     player = {x: 0, y: 0, size: 10, speed: 5, color: 255};
@@ -86,7 +96,7 @@ function setGameState(state, levelIndex) {
     levelState.path = {border: 5, color: 75};
   }
   
-  // Restart the draw loop
+  // Restart the draw loop from the start (so that functions in the old game state don't run)
   noLoop();
   loop();
 }
@@ -133,7 +143,7 @@ function movePlayer() {
     // Collide or interact with world features
     for (let portal of worldPortals) {
       if (mouseIsPressed && collideRectCircle(player.x - player.size/2, player.y - player.size/2, player.size, player.size, portal.x, portal.y, portal.size)) {
-        setGameState("level", 0);
+        setGameState("level", portal.level);
       }
     }
 
