@@ -7,8 +7,6 @@
 // - p5.collide2d library for collision between shapes
 //
 
-/////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!/////////////////////is it okay to have variables named the same thing as p5 functions?
-
 //////// Data for the game's levels (There's only one level currently) //////// (maybe make constants?)
 
 // The points on the path of the capsule through each level
@@ -219,35 +217,40 @@ function drawPortals() {
 
 function levelProgress() {
   // Gets the current progress through the level and through the paths
+
   levelState.currentNodeIndex = 0;
   levelState.lastNodeTime = levelState.startTime;
   
-  // Loop through the level's nodes, if the time before the capsule reaches the node has passed, set that node as the current one, PLACEHOLDER ADD MORE STUFF HERE AND BELOW
+  // Check the level's nodes in order
   for (let nodeIndex = 0; nodeIndex < levelState.levelObject.nodes.length; nodeIndex += 1) {
 
     if (millis() - levelState.startTime >= levelState.levelObject.nodes[nodeIndex].time) {
+      // If the time before the capsule reaches the node has passed, set the capsule's current node as that one
       levelState.currentNodeIndex = nodeIndex;
       levelState.lastNodeTime = levelState.startTime + levelState.levelObject.nodes[nodeIndex].time;
 
       if (nodeIndex >= levelState.levelObject.nodes.length - 1) {
+        // If the last node in the level has been passed, exit to the world state
         setGameState("world", 0);
       }
     } else {
+      // Exit the loop (with the current node still set as the previous node checked)
       break;
     }
   }
 }
 
 function moveCapsule() {
-  // Move the capsule along the path, or keep it at the start
+  // Move the capsule along the path by setting the position based on the current node and time
   let levelCapsule = levelState.capsule;
 
   let currentPath = levelState.levelObject.nodes[levelState.currentNodeIndex];
   let nextPath = levelState.levelObject.nodes[levelState.currentNodeIndex + 1];
   
-  // Time since the last node divided by the time between the last and next node
+  // Amount from the last node to the next one (0 to 1)
   let amountBetweenNodes = (millis() - levelState.lastNodeTime) / (nextPath.time - currentPath.time);
 
+  // Set capsule and backdrop properties to values between those of the last and next node
   levelCapsule.x = lerp(currentPath.x, nextPath.x, amountBetweenNodes);
   levelCapsule.y = lerp(currentPath.y, nextPath.y, amountBetweenNodes);
   levelCapsule.width = lerp(currentPath.capsuleW, nextPath.capsuleW, amountBetweenNodes);
