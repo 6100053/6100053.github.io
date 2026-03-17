@@ -6,6 +6,7 @@
 - [Adding Images](03-images)
 - [Ball Array](04-ball-array)
 - [Generative Tiles](05-tiles)
+- [Perlin Noise](06-noise)
 
 ## Assignments (All working towards my SDS)
 - [Interactive Scene](interactive-scene-assignment)
