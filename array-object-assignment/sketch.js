@@ -5,27 +5,39 @@
 // Extras for Experts:
 // - Handling of window resizing while the project is running (windowResized function)
 // - p5.collide2d library for collision between shapes
-// - Color?????????????????
 
-//////// Data for the game's levels (There's only one level currently) //////// (maybe make constants?)
+// ((possible to-do: constants data, other world features, screen transitions, portal info))
+
+//////// Data for the game's levels ////////
 
 // The points on the path of the capsule through each level
 let allNodes = [
   [
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 4, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 500, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 8, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 500, y: 50, capsuleW: 100, capsuleH: 100, timeBeats: 9, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 550, y: 50, capsuleW: 100, capsuleH: 100, timeBeats: 10, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 550, y: 100, capsuleW: 100, capsuleH: 100, timeBeats: 11, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 600, y: 100, capsuleW: 100, capsuleH: 100, timeBeats: 12, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-
-
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 0, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 240, s: 0, b: 0}, frontColor: {h: 240, s: 0, b: 10}}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 4, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 240, s: 0, b: 0}, frontColor: {h: 240, s: 0, b: 10}}},
+    {x: 400, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 8, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 240, s: 50, b: 10}, frontColor: {h: 240, s: 50, b: 20}}},
+    {x: 400, y: -200, capsuleW: 200, capsuleH: 100, timeBeats: 12, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backColor: {h: 240, s: 50, b: 10}, frontColor: {h: 240, s: 50, b: 20}}},
+    {x: -400, y: -200, capsuleW: 200, capsuleH: 100, timeBeats: 20, backdropData: {shape: "square", spacing: 100, size: 50, angle: 360, backColor: {h: 240, s: 50, b: 10}, frontColor: {h: 240, s: 50, b: 20}}},
+    {x: -400, y: 0, capsuleW: 200, capsuleH: 200, timeBeats: 24, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backColor: {h: 240, s: 50, b: 10}, frontColor: {h: 240, s: 50, b: 20}}},
+    {x: 0, y: 400, capsuleW: 200, capsuleH: 200, timeBeats: 30, backdropData: {shape: "square", spacing: 100, size: 75, angle: 360, backColor: {h: 240, s: 100, b: 20}, frontColor: {h: 240, s: 100, b: 5}}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 34, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 240, s: 0, b: 0}, frontColor: {h: 240, s: 0, b: 10}}},
+    {x: 0, y: 0, capsuleW: 100, capsuleH: 100, timeBeats: 36, backdropData: {shape: "square", spacing: 100, size: 50, angle: 0, backColor: {h: 240, s: 0, b: 0}, frontColor: {h: 240, s: 0, b: 10}}},
   ],
   [
-    {x: 0, y: 0, capsuleW: 150, capsuleH: 250, timeBeats: 0, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-    {x: 0, y: 400, capsuleW: 150, capsuleH: 250, timeBeats: 4, backdropData: {shape: "square", spacing: 75, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}}},
-
+    {x: 0, y: 0, capsuleW: 150, capsuleH: 150, timeBeats: 0, backdropData: {shape: "square", spacing: 75, size: 60, angle: 0, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: 0, y: 0, capsuleW: 150, capsuleH: 150, timeBeats: 8, backdropData: {shape: "square", spacing: 75, size: 60, angle: 0, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: -300, y: 150, capsuleW: 150, capsuleH: 100, timeBeats: 16, backdropData: {shape: "square", spacing: 75, size: 60, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: -300, y: 450, capsuleW: 250, capsuleH: 100, timeBeats: 24, backdropData: {shape: "square", spacing: 75, size: 60, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 75, b: 15}}},
+    {x: -150, y: 600, capsuleW: 250, capsuleH: 100, timeBeats: 28, backdropData: {shape: "square", spacing: 75, size: 60, angle: -45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 75, b: 15}}},
+    {x: 0, y: 450, capsuleW: 250, capsuleH: 100, timeBeats: 32, backdropData: {shape: "square", spacing: 75, size: 60, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 75, b: 15}}},
+    {x: 150, y: 600, capsuleW: 250, capsuleH: 100, timeBeats: 36, backdropData: {shape: "square", spacing: 75, size: 60, angle: -45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 75, b: 15}}},
+    {x: 300, y: 450, capsuleW: 250, capsuleH: 100, timeBeats: 40, backdropData: {shape: "square", spacing: 75, size: 60, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 75, b: 15}}},
+    {x: 450, y: 150, capsuleW: 50, capsuleH: 50, timeBeats: 48, backdropData: {shape: "square", spacing: 75, size: 30, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: 450, y: 150, capsuleW: 50, capsuleH: 50, timeBeats: 52, backdropData: {shape: "square", spacing: 75, size: 30, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: 300, y: 150, capsuleW: 50, capsuleH: 50, timeBeats: 53, backdropData: {shape: "square", spacing: 75, size: 30, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: 300, y: 0, capsuleW: 50, capsuleH: 50, timeBeats: 54, backdropData: {shape: "square", spacing: 75, size: 30, angle: 45, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: 0, y: 0, capsuleW: 150, capsuleH: 150, timeBeats: 60, backdropData: {shape: "square", spacing: 75, size: 60, angle: 0, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
+    {x: 0, y: 0, capsuleW: 150, capsuleH: 150, timeBeats: 64, backdropData: {shape: "square", spacing: 75, size: 60, angle: 0, backColor: {h: 120, s: 0, b: 0}, frontColor: {h: 120, s: 25, b: 15}}},
   ]
 ];
 
@@ -46,7 +58,7 @@ let player;
 let backdrop;
 
 // Holds the player's information for when the world state is switched (so they return to the same place when finished a level)
-let lastWorldPlayer = {x: 0, y: 0, size: 10, speed: 5, color: 255};
+let lastWorldPlayer = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
 
 // This object holds all the information for when a level is being played
 let levelState = {};
@@ -101,7 +113,7 @@ function setGameState(state, level = []) {
 
   if (state === "world") {
     player = lastWorldPlayer;
-    backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 25}};
+    backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 10}};
 
   } else if (state === "level") {
     lastWorldPlayer = structuredClone(player);
@@ -109,11 +121,11 @@ function setGameState(state, level = []) {
     levelState.levelObject = level;
     levelState.startTime = millis();
     
-    player = {x: 0, y: 0, size: 10, speed: 5, color: 255};
+    player = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
     backdrop = {};
     
-    levelState.capsule = {border: 5, color: 100};
-    levelState.path = {border: 5, color: 75};
+    levelState.capsule = {border: 5, color: {h: 0, s: 0, b: 40}};
+    levelState.path = {border: 5, color: {h: 0, s: 0, b: 30}};
   }
   
   // Restart the draw loop from the start (so that functions in the old game state don't run)
@@ -211,14 +223,14 @@ function drawBackground() {
 function drawPlayer() {
   // Draw the player
   noStroke();
-  fill(player.color);
+  fill(player.color.h, player.color.s, player.color.b);
   square(player.x, player.y, player.size);
 }
 
 //////// Draw loop funcitons used in the world game state ////////
 
 function drawPortals() {
-  // Draw the world's portals (I will likely be update this to include other world features eventually)
+  // Draw the world's portals (This will later be updated to include other world features eventually)
   for (let portal of worldPortals) {
     noStroke();
     fill(portal.color);
@@ -273,15 +285,25 @@ function moveCapsule() {
   backdrop.spacing = currentPath.backdropData.spacing;
   backdrop.size = lerp(currentPath.backdropData.size, nextPath.backdropData.size, amountBetweenNodes);
   backdrop.angle = lerp(currentPath.backdropData.angle, nextPath.backdropData.angle, amountBetweenNodes);
+  
+  let newBackColor = {};
+  let newFrontColor = {};
 
-  //CHANGE TO NEW HSB INDIVIDUALS SYSTEM
-  //backdrop.backColor = lerpColor(color(currentPath.backdropData.backColor), color(nextPath.backdropData.backColor), amountBetweenNodes);
-  //backdrop.frontColor = lerpColor(color(currentPath.backdropData.frontColor), color(nextPath.backdropData.frontColor), amountBetweenNodes);
+  newBackColor.h = lerp(currentPath.backdropData.backColor.h, nextPath.backdropData.backColor.h, amountBetweenNodes); 
+  newBackColor.s = lerp(currentPath.backdropData.backColor.s, nextPath.backdropData.backColor.s, amountBetweenNodes);
+  newBackColor.b = lerp(currentPath.backdropData.backColor.b, nextPath.backdropData.backColor.b, amountBetweenNodes);
+  
+  newFrontColor.h = lerp(currentPath.backdropData.frontColor.h, nextPath.backdropData.frontColor.h, amountBetweenNodes); 
+  newFrontColor.s = lerp(currentPath.backdropData.frontColor.s, nextPath.backdropData.frontColor.s, amountBetweenNodes);
+  newFrontColor.b = lerp(currentPath.backdropData.frontColor.b, nextPath.backdropData.frontColor.b, amountBetweenNodes);
+
+  backdrop.backColor = newBackColor;
+  backdrop.frontColor = newFrontColor;
 }
 
 function drawPaths() {
   // Draw the path of the capsule for the current level
-  stroke(levelState.path.color);
+  stroke(levelState.path.color.h, levelState.path.color.s, levelState.path.color.b);
   strokeWeight(levelState.path.border);
   
   let levelLines = levelState.levelObject.nodes;
@@ -299,7 +321,7 @@ function drawCapsule() {
   let currentCapsule = levelState.capsule;
   
   noFill();
-  stroke(currentCapsule.color);
+  stroke(currentCapsule.color.h, currentCapsule.color.s, currentCapsule.color.b);
   strokeWeight(currentCapsule.border);
   rect(currentCapsule.x, currentCapsule.y, currentCapsule.width + currentCapsule.border, currentCapsule.height + currentCapsule.border);
 }
