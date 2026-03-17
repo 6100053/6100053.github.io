@@ -6,8 +6,6 @@
 // - Handling of window resizing while the project is running (windowResized function)
 // - p5.collide2d library for collision between shapes
 
-// ((possible to-do: constants data, other world features, screen transitions, portal info))
-
 //////// Data for the game's levels ////////
 
 // The points on the path of the capsule through each level
@@ -47,8 +45,8 @@ let levels = [
 ];
 
 let worldPortals = [
-  {x: 400, y: 100, size: 100, color: "hsb(240, 50%, 75%)", level: levels[0]},
-  {x: -200, y: -300, size: 50, color: "hsb(120, 50%, 75%)", level: levels[1]}
+  {x: 400, y: 100, size: 100, sizeHover: 150, color: {h: 240, s: 50, b: 40}, level: levels[0], playerHover: false},
+  {x: -200, y: -300, size: 50, sizeHover: 100, color: {h: 120, s: 50, b: 40}, level: levels[1], playerHover: false}
 ];
 
 //////// Variables for playing the game ////////
@@ -88,6 +86,7 @@ function windowResized() {
 function draw() {
   if (gameState === "world") {
     movePlayer();
+    checkPortals();
 
     prepareDrawing();
     drawBackground();
@@ -155,12 +154,7 @@ function movePlayer() {
   }
   
   if (gameState === "world") {
-    // Collide or interact with world features
-    for (let portal of worldPortals) {
-      if (mouseIsPressed && collideRectCircle(player.x - player.size/2, player.y - player.size/2, player.size, player.size, portal.x, portal.y, portal.size)) {
-        setGameState("level", portal.level);
-      }
-    }
+    // Collide with world features (when things like world walls are added)
 
   } else if (gameState === "level") {
     // Keep the player in the capsule
@@ -229,11 +223,35 @@ function drawPlayer() {
 
 //////// Draw loop funcitons used in the world game state ////////
 
-function drawPortals() {
-  // Draw the world's portals (This will later be updated to include other world features eventually)
+function checkPortals() {
+  // Check all the portals for player collision
   for (let portal of worldPortals) {
+    if (collideRectCircle(player.x - player.size/2, player.y - player.size/2, player.size, player.size, portal.x, portal.y, portal.size)) {
+      portal.playerHover = true;
+
+      if (mouseIsPressed) {
+        setGameState("level", portal.level);
+      }
+    } else {
+      portal.playerHover = false;
+    }
+  }
+}
+
+function drawPortals() {
+  // Draw the world's portals (This will include other world features eventually)
+  for (let portal of worldPortals) {
+    // Draw them brighter if player is touching
+    let portalColorB;
+
+    if (portal.playerHover) {
+      portalColorB = portal.color.b * 2;
+    } else { 
+      portalColorB = portal.color.b;
+    }
+
     noStroke();
-    fill(portal.color);
+    fill(portal.color.h, portal.color.s, portalColorB);
     circle(portal.x, portal.y, portal.size);
   }
 }
