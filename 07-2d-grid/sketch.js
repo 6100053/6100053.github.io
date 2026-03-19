@@ -1,18 +1,28 @@
 // 2d Arrays Demo
 
-let grid = [
-  [1, 0, 0, 0],
-  [1, 0, 1, 0],
-  [0, 1, 0, 0],
-  [0, 1, 1, 1]];
+// // Use to hard-code the grid
+// let grid = [
+//   [1, 0, 0, 0],
+//   [1, 0, 1, 0],
+//   [0, 1, 0, 0],
+//   [0, 1, 1, 1]
+// ];
 
-const GRID_SIZE = grid.length;
+// Use for random grid
+const GRID_DIMENSIONS = 10;
+let grid;
+
+let gridSize;
 let cellSize;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  cellSize = min(width, height) / GRID_SIZE;
+  grid = randomGrid(GRID_DIMENSIONS, GRID_DIMENSIONS);
+
+  gridSize = grid.length;
+  
+  cellSize = min(width, height) / gridSize;
 }
 
 function draw() {
@@ -22,8 +32,8 @@ function draw() {
 }
 
 function showGrid() {
-  for (let y = 0; y < GRID_SIZE; y++) {
-    for (let x = 0; x < GRID_SIZE; x++) {
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
       if (grid[y][x] === 0) {
         fill(255);
       }
@@ -40,12 +50,32 @@ function mousePressed() {
   let cellX = floor(mouseX / cellSize);
   let cellY = floor(mouseY / cellSize);
 
-  let clickedCell = grid[cellY][cellX];
+  toggleCell(cellX, cellY);
 
-  if (clickedCell === 0) {
-    clickedCell = 1;
+  
+}
+
+function toggleCell(x, y) {
+  if (grid[y][x] === 0) {
+    grid[y][x] = 1;
   }
-  else if (clickedCell === 1) {
-    clickedCell = 0;
+  else if (grid[y][x] === 1) {
+    grid[y][x] = 0;
   }
+}
+
+function randomGrid(cols, rows) {
+  let newGrid = [];
+  for (let y = 0; y < rows; y++) {
+    newGrid.push([]);
+    for (let x = 0; x < cols; x++) {
+      if (random(100) < 50) {
+        newGrid[y].push(0);
+      }
+      else {
+        newGrid[y].push(1);
+      }
+    }
+  }
+  return newGrid;
 }
