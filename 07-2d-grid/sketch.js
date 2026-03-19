@@ -37,5 +37,15 @@ function showGrid() {
 }
 
 function mousePressed() {
-  //toggle cell color when clicked
+  let cellX = floor(mouseX / cellSize);
+  let cellY = floor(mouseY / cellSize);
+
+  let clickedCell = grid[cellY][cellX];
+
+  if (clickedCell === 0) {
+    clickedCell = 1;
+  }
+  else if (clickedCell === 1) {
+    clickedCell = 0;
+  }
 }
