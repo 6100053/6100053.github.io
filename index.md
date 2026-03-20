@@ -8,10 +8,12 @@
 - [Generative Tiles](05-tiles)
 - [Perlin Noise](06-noise)
 - [2d Grid](07-2d-grid)
+- [Rectangular Grid](08-rect-grid)
 
-## Assignments (All working towards my SDS)
+## Assignments (Mostly working towards my SDS)
 - [Interactive Scene](interactive-scene-assignment)
 - [Arrays and Object Notation](array-object-assignment)
+- [2d Grid Game](grid-game-assignment)
 
 ## [p5js Web Editor projects](https://editor.p5js.org/6100053/sketches)
 - [CSC30 Activities](https://editor.p5js.org/6100053/collections/r0UlQFdCI)
