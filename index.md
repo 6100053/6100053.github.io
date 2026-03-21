@@ -11,9 +11,10 @@
 - [Rectangular Grid](08-rect-grid)
 
 ## Assignments (Mostly working towards my SDS)
-- [Interactive Scene](interactive-scene-assignment)
-- [Arrays and Object Notation](array-object-assignment)
+- [Interactive Scene (SDS Prototype 1)](interactive-scene-assignment)
+- [Arrays and Object Notation (SDS Prototype 2)](array-object-assignment)
 - [2d Grid Game](grid-game-assignment)
+- [Working on SDS](sds-draft)
 
 ## [p5js Web Editor projects](https://editor.p5js.org/6100053/sketches)
 - [CSC30 Activities](https://editor.p5js.org/6100053/collections/r0UlQFdCI)
