@@ -53,6 +53,8 @@ let worldPortals = [
 
 //////// Variables for playing the game ////////
 let gameState;
+let pendingState;
+let pendingStateLevel;
 
 let player;
 let backdrop;
@@ -86,6 +88,9 @@ function windowResized() {
 }
 
 function draw() {
+  pendingState = "";
+  pendingStateLevel = [];
+
   if (gameState === "world") {
     movePlayer();
     checkPortals();
@@ -105,6 +110,18 @@ function draw() {
     drawPaths();
     drawCapsule();
     drawPlayer();
+  }
+
+  if (pendingState !== "") {
+    setGameState(pendingState, pendingStateLevel);
+  }
+}
+
+function pendGameState(state, level = []) {
+  if (pendingState === "") {
+    // Store the next game state so it can be set at the end of the draw loop
+    pendingState = state;
+    pendingStateLevel = level;
   }
 }
 
@@ -128,10 +145,6 @@ function setGameState(state, level = []) {
     levelState.capsule = {border: 5, color: {h: 0, s: 0, b: 40}};
     levelState.path = {border: 5, color: {h: 0, s: 0, b: 30}};
   }
-  
-  // Restart the draw loop from the start (so that functions in the old game state don't run)
-  noLoop();
-  loop();
 }
 
 function beatsToMillis(beats, bpm) {
@@ -240,7 +253,7 @@ function checkPortals() {
       portal.playerHover = true;
 
       if (mouseIsPressed) {
-        setGameState("level", portal.level);
+        pendGameState("level", portal.level);
       }
     } else {
       portal.playerHover = false;
@@ -278,14 +291,16 @@ function levelProgress() {
   for (let nodeIndex = 0; nodeIndex < levelState.levelObject.nodes.length; nodeIndex += 1) {
 
     if (millis() - levelState.startTime >= beatsToMillis(levelState.levelObject.nodes[nodeIndex].timeBeats, levelState.levelObject.tempo)) {
-      // If the time before the capsule reaches the node has passed, set the capsule's current node as that one
-      levelState.currentNodeIndex = nodeIndex;
-      levelState.lastNodeTime = levelState.startTime + beatsToMillis(levelState.levelObject.nodes[nodeIndex].timeBeats, levelState.levelObject.tempo);
+      // If the time before the capsule reaches the node has passed, set the capsule's current node as that one (but not if it's the last one)
+      if (nodeIndex < levelState.levelObject.nodes.length - 1) {
+        levelState.currentNodeIndex = nodeIndex;
+        levelState.lastNodeTime = levelState.startTime + beatsToMillis(levelState.levelObject.nodes[nodeIndex].timeBeats, levelState.levelObject.tempo);
 
-      if (nodeIndex >= levelState.levelObject.nodes.length - 1) {
+      } else {
         // If the last node in the level has been passed, exit to the world state
-        setGameState("world", 0);
+        pendGameState("world", 0);
       }
+      
     } else {
       // Exit the loop (with the current node still set as the previous node checked)
       break;
@@ -316,12 +331,10 @@ function moveCapsule() {
   
   let newBackColor = {};
   let newFrontColor = {};
-
-  newBackColor.h = lerp(currentPath.backdropData.backColor.h, nextPath.backdropData.backColor.h, amountBetweenNodes); 
+ 
   newBackColor.s = lerp(currentPath.backdropData.backColor.s, nextPath.backdropData.backColor.s, amountBetweenNodes);
   newBackColor.b = lerp(currentPath.backdropData.backColor.b, nextPath.backdropData.backColor.b, amountBetweenNodes);
   
-  newFrontColor.h = lerp(currentPath.backdropData.frontColor.h, nextPath.backdropData.frontColor.h, amountBetweenNodes); 
   newFrontColor.s = lerp(currentPath.backdropData.frontColor.s, nextPath.backdropData.frontColor.s, amountBetweenNodes);
   newFrontColor.b = lerp(currentPath.backdropData.frontColor.b, nextPath.backdropData.frontColor.b, amountBetweenNodes);
 
