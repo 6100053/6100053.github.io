@@ -5,10 +5,10 @@
 // Extras for Experts:
 // -Placeholder also maybe other SDS requirements
 
-// (possible things to add: portal animations, world features)
+// (possible things to add: portal animations, world features, constants)
 
 
-//////// Data for the game's levels ////////
+//////// Data for the game's world levels ////////
 
 // The points on the path of the capsule through each level
 let allNodes = [
@@ -47,11 +47,12 @@ let levels = [
 ];
 
 let worldPortals = [
-  {x: 400, y: 100, size: 100, sizeHover: 150, color: {s: 50, b: 40}, level: levels[0], playerHover: false},
-  {x: -200, y: -300, size: 50, sizeHover: 100, color: {s: 50, b: 40}, level: levels[1], playerHover: false}
+  {x: 400, y: 100, size: 100, color: {s: 50, b: 40}, level: levels[0], playerHover: false},
+  {x: -200, y: -300, size: 100, color: {s: 50, b: 40}, level: levels[1], playerHover: false}
 ];
 
 //////// Variables for playing the game ////////
+
 let gameState;
 let pendingState;
 let pendingStateLevel;
@@ -60,7 +61,7 @@ let player;
 let backdrop;
 
 // Holds the player's information for when the world state is switched (so they return to the same place when finished a level)
-let lastWorldPlayer = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
+let worldPlayer = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
 
 // This object holds all the information for when a level is being played
 let levelState = {};
@@ -126,15 +127,15 @@ function pendGameState(state, level = []) {
 }
 
 function setGameState(state, level = []) {
-  // Changes the game state, setting up the new state
+  // Change the game state and set up the new state
   gameState = state;
 
   if (state === "world") {
-    player = lastWorldPlayer;
+    player = worldPlayer;
     backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 10}};
 
   } else if (state === "level") {
-    lastWorldPlayer = structuredClone(player);
+    worldPlayer = structuredClone(player);
 
     levelState.levelObject = level;
     levelState.startTime = millis();
