@@ -5,7 +5,7 @@
 // Extras for Experts:
 // -Placeholder also maybe other SDS requirements
 
-// (possible things to add: portal animations, world features, constants)
+// (possible things to add: portal info, world features, constants)
 
 
 //////// Data for the game's world levels ////////
@@ -54,8 +54,8 @@ let worldPortals = [
 //////// Variables for playing the game ////////
 
 let gameState;
-let pendingState;
-let pendingStateLevel;
+let pendingState = "";
+let pendingStateLevel = [];
 
 let player;
 let backdrop;
@@ -65,6 +65,8 @@ let worldPlayer = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
 
 // This object holds all the information for when a level is being played
 let levelState = {};
+
+let transition = {duration: 1000, color: {h: 0, s: 0, b: 0}, active: false, switchTime: 0};
 
 // Size of the view that the drawing will be scaled to
 let viewSize = 800;
@@ -89,12 +91,11 @@ function windowResized() {
 }
 
 function draw() {
-  pendingState = "";
-  pendingStateLevel = [];
-
   if (gameState === "world") {
-    movePlayer();
-    checkPortals();
+    if (!transition.active) {
+      movePlayer();
+      checkPortals();
+    }
 
     prepareDrawing();
     drawBackground();
@@ -102,9 +103,11 @@ function draw() {
     drawPlayer();
     
   } else if (gameState === "level") {
-    levelProgress();
-    moveCapsule();
-    movePlayer();
+    if (!transition.active) {
+      levelProgress();
+      moveCapsule();
+      movePlayer();
+    }
     
     prepareDrawing();
     drawBackground();
@@ -112,17 +115,18 @@ function draw() {
     drawCapsule();
     drawPlayer();
   }
-
-  if (pendingState !== "") {
-    setGameState(pendingState, pendingStateLevel);
-  }
+  checkTransition();
+  drawTransition();
 }
 
 function pendGameState(state, level = []) {
-  if (pendingState === "") {
+  if (!transition.active) {
     // Store the next game state so it can be set at the end of the draw loop
     pendingState = state;
     pendingStateLevel = level;
+
+    transition.active = true;
+    transition.switchTime = millis() + transition.duration;
   }
 }
 
@@ -133,18 +137,24 @@ function setGameState(state, level = []) {
   if (state === "world") {
     player = worldPlayer;
     backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 10}};
-
+    
   } else if (state === "level") {
     worldPlayer = structuredClone(player);
-
-    levelState.levelObject = level;
-    levelState.startTime = millis();
     
     player = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
     backdrop = {};
     
     levelState.capsule = {border: 5, color: {h: 0, s: 0, b: 40}};
     levelState.path = {border: 5, color: {h: 0, s: 0, b: 30}};
+    
+    levelState.levelObject = level;
+
+    // Register the first frame of the level
+    levelState.startTime = millis();
+    levelProgress();
+    moveCapsule();
+
+    levelState.startTime = millis() + transition.duration;
   }
 }
 
@@ -171,7 +181,7 @@ function movePlayer() {
   
   if (gameState === "world") {
     // Collide with world features (when things like world walls are added)
-
+    
   } else if (gameState === "level") {
     // Keep the player in the capsule
     let currentCapsule = levelState.capsule;
@@ -227,7 +237,7 @@ function drawBackground() {
       push();
       translate(shapeX, shapeY);
       rotate(backdrop.angle);
-
+      
       if (backdrop.shape === "square") {
         square(0, 0, backdrop.size);
       } else if (backdrop.shape === "circle") {
@@ -243,6 +253,26 @@ function drawPlayer() {
   noStroke();
   fill(player.color.h, player.color.s, player.color.b);
   square(player.x, player.y, player.size);
+}
+
+function checkTransition() {
+  // Check if it's time to change the game state or finish the transition
+  if (pendingState !== "" && millis() >= transition.switchTime) {
+    setGameState(pendingState, pendingStateLevel);
+  
+    pendingState = "";
+    pendingStateLevel = [];
+  }
+  if (transition.active && millis() >= transition.switchTime + transition.duration) {
+    transition.active = false;
+  }
+}
+
+function drawTransition() {
+  // Draw the transition as a fade to black
+  if (transition.active) {
+    background(transition.color.h, transition.color.s, transition.color.b, 1 - abs(millis() - transition.switchTime) / transition.duration);
+  }
 }
 
 //////// Draw loop funcitons used in the world game state ////////
