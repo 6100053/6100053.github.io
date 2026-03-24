@@ -5,7 +5,7 @@
 // Extras for Experts:
 // -Placeholder also maybe other SDS requirements
 
-// (possible things to add: portal info, world features, constants)
+// (possible things to add: portal info, world features, constants, data files?)
 
 
 //////// Data for the game's world levels ////////
@@ -45,6 +45,16 @@ let levels = [
   {name: "Test name", tempo: 120, colorH: 240, nodes: allNodes[0]},
   {name: "Another level", tempo: 168, colorH: 120, nodes: allNodes[1]}
 ];
+
+let worldBorder = {color: {h: 0, s: 0, b: 25}, corners: [
+  {x: 0, y: -500},
+  {x: 300, y: -500},
+  {x: 300, y: 0},
+  {x: 600, y: 0},
+  {x: 600, y: 200},
+  {x: -400, y: 200},
+  {x: -400, y: -500},
+]};
 
 let worldPortals = [
   {x: 400, y: 100, size: 100, color: {s: 50, b: 40}, level: levels[0], playerHover: false},
@@ -99,6 +109,7 @@ function draw() {
 
     prepareDrawing();
     drawBackground();
+    drawBorder();
     drawPortals();
     drawPlayer();
     
@@ -166,26 +177,43 @@ function beatsToMillis(beats, bpm) {
 //////// Draw loop functions used in all game states ////////
 
 function movePlayer() {
-  if (keyIsDown(39) || keyIsDown(68)) { // Right arrow or D key
-    player.x += player.speed;
+  // Right arrow or D key
+  let inputRight = keyIsDown(39) || keyIsDown(68);
+  // Left arrow or A key
+  let inputLeft = keyIsDown(37) || keyIsDown(65);
+  // Down arrow or S key
+  let inputDown = keyIsDown(40) || keyIsDown(83);
+  // Up arrow or W key
+  let inputUp = keyIsDown(38) || keyIsDown(87);
+
+  // Convert input into movement direction
+  let angle = inputRight * 360 * inputUp + inputLeft * 180 + inputDown * 90 + inputUp * 270;
+  if (inputRight !== inputLeft && inputDown !== inputUp) {
+    angle = angle / 2;
   }
-  if (keyIsDown(37) || keyIsDown(65)) { // Left arrow or A key
-    player.x -= player.speed;
-  }
-  if (keyIsDown(40) || keyIsDown(83)) { // Down arrow or S key
-    player.y += player.speed;
-  }
-  if (keyIsDown(38) || keyIsDown(87)) { // Up arrow or W key
-    player.y -= player.speed;
-  }
-  
+
   if (gameState === "world") {
-    // Collide with world features (when things like world walls are added)
-    
+    // Collide with world border
+    if (inputRight !== inputLeft || inputDown !== inputUp) {
+      player.x += cos(angle) * player.speed;
+      if (collideRectPoly(player.x - player.size / 2, player.y - player.size / 2, player.size, player.size, worldBorder.corners)) {
+        player.x -= cos(angle) * player.speed;
+      }
+      player.y += sin(angle) * player.speed;
+      if (collideRectPoly(player.x - player.size / 2, player.y - player.size / 2, player.size, player.size, worldBorder.corners)) {
+        player.y -= sin(angle) * player.speed;
+      }
+    }
+
   } else if (gameState === "level") {
+    if (inputRight !== inputLeft || inputDown !== inputUp) {
+      player.x += cos(angle) * player.speed;
+      player.y += sin(angle) * player.speed;
+    }
+
     // Keep the player in the capsule
     let currentCapsule = levelState.capsule;
-
+    
     player.x = constrain(player.x, currentCapsule.x - (currentCapsule.width/2 - player.size/2), currentCapsule.x + (currentCapsule.width/2 - player.size/2));
     player.y = constrain(player.y, currentCapsule.y - (currentCapsule.height/2 - player.size/2), currentCapsule.y + (currentCapsule.height/2 - player.size/2));
   }
@@ -269,7 +297,7 @@ function checkTransition() {
 }
 
 function drawTransition() {
-  // Draw the transition as a fade to black
+  // Draw the transition as a fade to black based on how close the current time is to the switch time
   if (transition.active) {
     background(transition.color.h, transition.color.s, transition.color.b, 1 - abs(millis() - transition.switchTime) / transition.duration);
   }
@@ -290,6 +318,20 @@ function checkPortals() {
       portal.playerHover = false;
     }
   }
+}
+
+function drawBorder() {
+  // Draw the world border polygon by filling everything outside of it using a mask
+  push();
+  beginClip({invert: true});
+  beginShape();
+  for (let corner of worldBorder.corners) {
+    vertex(corner.x, corner.y);
+  }
+  endShape(CLOSE);
+  endClip();
+  background(worldBorder.color.h, worldBorder.color.s, worldBorder.color.b);
+  pop();
 }
 
 function drawPortals() {
