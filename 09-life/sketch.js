@@ -2,10 +2,18 @@
 
 const CELL_SIZE = 10;
 const FRAME_MULTIPLE = 5;
+const CELL_DEAD = 0;
+const CELL_ALIVE = 1;
+
 let gridRows;
 let gridCols;
 let grid;
 let autoPlay = true;
+let gosper;
+
+function preload() {
+  gosper = loadJSON("gosper.json");
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -33,10 +41,10 @@ function randomGrid(cols, rows) {
     newGrid.push([]);
     for (let x = 0; x < cols; x++) {
       if (random(100) < 50) {
-        newGrid[y].push(0);
+        newGrid[y].push(CELL_DEAD);
       }
       else {
-        newGrid[y].push(1);
+        newGrid[y].push(CELL_ALIVE);
       }
     }
   }
@@ -48,7 +56,7 @@ function emptyGrid(cols, rows) {
   for (let y = 0; y < rows; y++) {
     newGrid.push([]);
     for (let x = 0; x < cols; x++) {
-      newGrid[y].push(0);
+      newGrid[y].push(CELL_DEAD);
     }
   }
   return newGrid;
@@ -79,11 +87,11 @@ function mousePressed() {
 
 function toggleCell(x, y) {
   if (y >= 0 && y < gridRows && x >= 0 && x < gridCols) {
-    if (grid[y][x] === 0) {
-      grid[y][x] = 1;
+    if (grid[y][x] === CELL_DEAD) {
+      grid[y][x] = CELL_ALIVE;
     }
-    else if (grid[y][x] === 1) {
-      grid[y][x] = 0;
+    else if (grid[y][x] === CELL_ALIVE) {
+      grid[y][x] = CELL_DEAD;
     }
   }
 }
@@ -94,6 +102,9 @@ function keyPressed() {
   }
   else if (key === "e") {
     grid = emptyGrid(gridCols, gridRows);
+  }
+  else if (key === "g") {
+    grid = gosper;
   }
   else if (key === " ") {
     autoPlay = !autoPlay;
@@ -116,14 +127,14 @@ function updateGrid() {
       }
       neighbours -= grid[y][x];
 
-      if (grid[y][x] === 0) {
+      if (grid[y][x] === CELL_DEAD) {
         if (neighbours === 3) {
-          nextGrid[y][x] = 1;
+          nextGrid[y][x] = CELL_ALIVE;
         } 
       }
-      else if (grid[y][x] === 1) {
+      else if (grid[y][x] === CELL_ALIVE) {
         if (neighbours === 2 || neighbours === 3) {
-          nextGrid[y][x] = 1;
+          nextGrid[y][x] = CELL_ALIVE;
         }
       }
     }
