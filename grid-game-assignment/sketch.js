@@ -59,7 +59,7 @@ function movePlayers() {
 
     //Collision/interaction placeholder
 
-    grid[player.y][player.x] = {type: "body", content: {time: millis() + player.length * 1000, color: player.color}};
+    grid[player.y][player.x] = {type: "body", time: millis() + player.length * 1000};//add plyer reference
   }
 }
 
@@ -68,7 +68,7 @@ function drawGrid() {
     for (let x = 0; x < MAP_SIZE; x++) {
       gridContent = grid[y][x].content;
       if (grid[y][x].type === "player") {
-        fill(gridContent.r, gridContent.g, gridContent.b);
+        //fill(.r, .g, .b);
         square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
       }
     }

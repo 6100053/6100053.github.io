@@ -10,6 +10,7 @@
 - [2d Grid](07-2d-grid)
 - [Rectangular Grid](08-rect-grid)
 - [Game of Life](09-life)
+- [Grid with character](10-grid-character)
 
 ## Assignments (Mostly working towards my SDS)
 - [Interactive Scene (SDS Prototype 1)](interactive-scene-assignment)
