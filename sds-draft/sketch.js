@@ -5,7 +5,7 @@
 // Extras for Experts:
 // -Placeholder also maybe other SDS requirements
 
-// (possible things to add: portal info, world features, constants, data files?)
+// (possible things to add: portal info, world features, constants(keycodes), data files?)
 
 
 //////// Data for the game's world levels ////////
