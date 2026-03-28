@@ -7,8 +7,6 @@
 
 //COMMENTS
 
-//MUST FIX why the Tail is not disspeairng???
-
 const KEY_LEFT = 37;
 const KEY_UP = 38;
 const KEY_RIGHT = 39;
@@ -18,17 +16,19 @@ const KEY_D = 68;
 const KEY_S = 83;
 const KEY_W = 87;
 
-const FRAME_MOD = 10;
+const PLAYER_MOVE_TIME = 500;
+let playerMoveFrame = 0;
 
 let cellSize;
-const MAP_SIZE = 11;
-const VIEW_SIZE = 11;
+const MAP_SIZE = 30;
+const VIEW_SIZE = 15;
+const CAMERA_SPEED = 0.02;
 
 const EMPTY_CELL = {type: "empty"};
-const STARTER_PLAYER = {x: 0, y: 0, xSpeed: 0, ySpeed: -1, length: 3, color: {r: 0, g: 0, b: 0}};
 
-let grid = emptyGrid(MAP_SIZE);
+let grid;
 let player;
+let camera;
 
 function setup() {
   let windowSize = min(windowWidth, windowHeight);
@@ -36,7 +36,9 @@ function setup() {
   createCanvas(windowSize, windowSize);
   noStroke();
 
-  addPlayer();
+  grid = emptyGrid(MAP_SIZE);
+  player = newPlayer();
+  camera = {x: player.x, y: player.y, speed: CAMERA_SPEED};
 }
 
 function windowResized() {
@@ -47,11 +49,13 @@ function windowResized() {
 
 function draw() {
   playerDirection();
-  if (frameCount % FRAME_MOD === 0) {
+  if (millis() > playerMoveFrame * PLAYER_MOVE_TIME) {
+    movePlayer();
     updateCells();
-    movePlayers();
+    playerMoveFrame += 1;
   }
-
+  
+  moveCamera();
   drawGrid();
 }
 
@@ -75,72 +79,102 @@ function playerDirection() {
 }
 
 function updateCells() {
-  for (let row of grid) {
-    for (let cell of row) {
-      if (cell.type === "body") {
-        cell.age += 1;
-        if (cell.age > cell.player.length) {
-          cell = EMPTY_CELL;//clone???
+  for (let y = 0; y < MAP_SIZE; y++) {
+    for (let x = 0; x < MAP_SIZE; x++) {
+      let gridCell = grid[y][x];
+      if (gridCell.type === "body") {
+        if (playerMoveFrame >= gridCell.emptyFrame) {
+          grid[y][x] = EMPTY_CELL;
         }
       }
     }
   }
 }
 
-function movePlayers() {
-  grid[player.y][player.x] = {type: "body", player: player, age: 0};
+function movePlayer() {
+  grid[player.y][player.x] = {type: "body", player: player, emptyFrame: playerMoveFrame + player.length - 1};
 
-  player.x = (player.x + player.xSpeed + MAP_SIZE) % MAP_SIZE;
-  player.y = (player.y + player.ySpeed + MAP_SIZE) % MAP_SIZE;
+  player.x += player.xSpeed;
+  player.y += player.ySpeed;
 
   //Collision/interaction placeholder
 
   grid[player.y][player.x] = {type: "head", player: player};
 }
 
+function moveCamera() {
+  camera.x += (player.x - camera.x) * camera.speed;
+  camera.y += (player.y - camera.y) * camera.speed;
+}
+
 function drawGrid() {
-  for (let y = 0; y < MAP_SIZE; y++) {
-    for (let x = 0; x < MAP_SIZE; x++) {
-      let gridCell = grid[y][x];
-      if (gridCell.type === "head" || gridCell.type === "body") {
-        fill(gridCell.player.color.r, gridCell.player.color.g, gridCell.player.color.b);
-      }
-      else if (gridCell.type === "empty") {
-        if ((x + y) % 2 === 0) {
-          fill(220);
+  translate((-camera.x - 1/2 + VIEW_SIZE / 2) * cellSize, (-camera.y - 1/2 + VIEW_SIZE / 2) * cellSize);
+
+  for (let y = round(camera.y) - ceil(VIEW_SIZE / 2); y <= round(camera.y) + ceil(VIEW_SIZE / 2); y++) {
+    for (let x = round(camera.x) - ceil(VIEW_SIZE / 2); x <= round(camera.x) + ceil(VIEW_SIZE / 2); x++) {
+
+      if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE) {
+        let gridCell = grid[y][x];
+
+        if (gridCell.type === "head" || gridCell.type === "body") {
+          fill(gridCell.player.color.r, gridCell.player.color.g, gridCell.player.color.b);
+          square(x * cellSize, y * cellSize, cellSize);
+  
+          if (gridCell.type === "head") {
+            let headX = x * cellSize + cellSize / 2;
+            let headY = y * cellSize + cellSize / 2;
+            let eyeSize = cellSize / 4;
+  
+            for (let eyeX = -1; eyeX <= 1; eyeX += 2) {
+              for (let eyeY = -1; eyeY <= 1; eyeY += 2) {
+                if (eyeX === gridCell.player.xSpeed || eyeY === gridCell.player.ySpeed) {
+                  fill(255);
+                  circle(headX + eyeX * eyeSize, headY + eyeY * eyeSize, eyeSize);
+                  fill(0);
+                  circle(headX + eyeX * eyeSize, headY + eyeY * eyeSize, eyeSize / 2);
+                }
+              }
+            }
+          }
         }
-        else {
-          fill(240);
+        else if (gridCell.type === "empty") {
+          if ((x + y) % 2 === 0) {
+            fill(220);
+          }
+          else {
+            fill(240);
+          }
+          square(x * cellSize, y * cellSize, cellSize);
         }
+
       }
-      square(x * cellSize, y * cellSize, cellSize);
-      if (gridCell.type === "head") {
-        fill(255);
-        circle(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, cellSize / 2);//change
+      else {
+        fill(50);
+        square(x * cellSize, y * cellSize, cellSize);
       }
+
     }
   }
 }
 
-function emptyGrid() {
+function emptyGrid(size) {
   let newGrid = [];
-  for (let y = 0; y < MAP_SIZE; y++) {
+  for (let y = 0; y < size; y++) {
     newGrid.push([]);
-    for (let x = 0; x < MAP_SIZE; x++) {
+    for (let x = 0; x < size; x++) {
       newGrid[y].push(EMPTY_CELL);
     }
   }
   return newGrid;
 }
 
-function addPlayer() {
-  let newPlayer = structuredClone(STARTER_PLAYER);
-  newPlayer.x = floor(random(MAP_SIZE));
-  newPlayer.y = floor(random(MAP_SIZE));
-  newPlayer.color.r = random(200);
-  newPlayer.color.g = random(200);
-  newPlayer.color.b = random(200);
-  player = newPlayer;
+function newPlayer() {
+  let startPlayer = {x: 0, y: 0, xSpeed: 0, ySpeed: 0, length: 3, color: {r: 0, g: 0, b: 0}};
+  startPlayer.x = floor(random(MAP_SIZE));
+  startPlayer.y = floor(random(MAP_SIZE));
+  startPlayer.color.r = random(200);
+  startPlayer.color.g = random(200);
+  startPlayer.color.b = random(200);
 
-  grid[player.y][player.x] = {type: "head", player: player};
+  return startPlayer;
 }
