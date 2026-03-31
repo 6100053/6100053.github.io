@@ -117,7 +117,19 @@ function drawGrid() {
         let gridCell = grid[y][x];
 
         if (gridCell.type === "head" || gridCell.type === "body") {
-          fill(gridCell.player.color.r, gridCell.player.color.g, gridCell.player.color.b);
+          let playerColor1 = color(gridCell.player.color1.r, gridCell.player.color1.g, gridCell.player.color1.b);
+          let playerColor2 = color(gridCell.player.color2.r, gridCell.player.color2.g, gridCell.player.color2.b);
+
+          let colorOffset;
+          if (gridCell.type === "body") {
+            colorOffset = gridCell.emptyFrame - playerMoveFrame;
+          }
+          else {
+            colorOffset = 1;
+          }
+          let fillColor = lerpColor(playerColor1, playerColor2, abs(colorOffset % (gridCell.player.colorLength * 2) / gridCell.player.colorLength - 1));
+
+          fill(fillColor);
           square(x * cellSize, y * cellSize, cellSize);
   
           if (gridCell.type === "head") {
@@ -169,12 +181,15 @@ function emptyGrid(size) {
 }
 
 function newPlayer() {
-  let startPlayer = {x: 0, y: 0, xSpeed: 0, ySpeed: 0, length: 3, color: {r: 0, g: 0, b: 0}};
+  let startPlayer = {x: 0, y: 0, xSpeed: 0, ySpeed: 0, length: 10, color1: {r: 0, g: 0, b: 0}, color2: {r: 0, g: 0, b: 0}, colorLength: 3};
   startPlayer.x = floor(random(MAP_SIZE));
   startPlayer.y = floor(random(MAP_SIZE));
-  startPlayer.color.r = random(200);
-  startPlayer.color.g = random(200);
-  startPlayer.color.b = random(200);
+  startPlayer.color1.r = random(200);
+  startPlayer.color1.g = random(200);
+  startPlayer.color1.b = random(200);
+  startPlayer.color2.r = random(200);
+  startPlayer.color2.g = random(200);
+  startPlayer.color2.b = random(200);
 
   return startPlayer;
 }
