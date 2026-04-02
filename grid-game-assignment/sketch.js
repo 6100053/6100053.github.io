@@ -1,6 +1,6 @@
 // 2d Grid Game Assignment
 // Carsen Waters
-// April ++ 2026
+// April 15 2026
 //
 // Extras for Experts:
 // - PLACEHOLDER
@@ -16,7 +16,16 @@ const KEY_D = 68;
 const KEY_S = 83;
 const KEY_W = 87;
 
-const PLAYER_MOVE_TIME = 500;
+const COLORS = {
+  empty1: 220,
+  empty2: 240,
+  wall1: 0,
+  wall2: 20,
+  playerMin: 50,
+  playerMax: 200
+};
+
+const PLAYER_MOVE_TIME = 250;
 let snakeMoveFrame = 0;
 
 let cellSize;
@@ -24,12 +33,14 @@ const MAP_SIZE = 50;
 const MAP_GENERATION_THRESHOLD = 0.15;
 const MAP_GENERATION_SCALE = 10;
 const VIEW_SIZE = 20;
-const CAMERA_SPEED = 0.02;
+const CAMERA_SPEED = 0.03;
 
 const CELL_EMPTY = {type: "empty"};
 const CELL_WALL = {type: "wall"};
 
-const PLAYER_START_LENGTH = 10;
+const PLAYER_START_LENGTH = 3;
+
+const START_FOOD = 25;
 
 let grid;
 let playerSnakes = [];
@@ -46,6 +57,7 @@ function setup() {
   grid = generateGrid(MAP_SIZE);
   newPlayer();
   camera = {x: snake.x, y: snake.y, speed: CAMERA_SPEED};
+  addFood(START_FOOD);
 }
 
 function windowResized() {
@@ -94,7 +106,7 @@ function updateCells() {
     for (let x = 0; x < MAP_SIZE; x++) {
       let gridCell = grid[y][x];
       if (gridCell.type === "body") {
-        if (snakeMoveFrame >= gridCell.emptyFrame || !gridCell.player.alive) {
+        if (snakeMoveFrame >= gridCell.emptyFrame || !gridCell.snake.alive) {
           grid[y][x] = CELL_EMPTY;
         }
       }
@@ -104,7 +116,7 @@ function updateCells() {
 
 function moveSnake() {
   if (snake.alive) {
-    grid[snake.y][snake.x] = {type: "body", player: snake, emptyFrame: snakeMoveFrame + snake.length - 1};
+    grid[snake.y][snake.x] = {type: "body", snake: snake, emptyFrame: snakeMoveFrame + snake.length - 1};
 
     snake.x += snake.xSpeed;
     snake.y += snake.ySpeed;
@@ -118,7 +130,12 @@ function moveSnake() {
         newPlayer();
       }
       else {
-        grid[snake.y][snake.x] = {type: "head", player: snake};
+        if (grid[snake.y][snake.x].type === "food") {
+          snake.length += 1;
+          addFood(1);
+        }
+
+        grid[snake.y][snake.x] = {type: "head", snake: snake};
       }
     }
   }
@@ -139,12 +156,12 @@ function drawGrid() {
         let gridCell = grid[y][x];
 
         if (gridCell.type === "head" || gridCell.type === "body") {
-          let playerColor1 = color(gridCell.player.color1.r, gridCell.player.color1.g, gridCell.player.color1.b);
-          let playerColor2 = color(gridCell.player.color2.r, gridCell.player.color2.g, gridCell.player.color2.b);
+          let playerColor1 = color(gridCell.snake.color1.r, gridCell.snake.color1.g, gridCell.snake.color1.b);
+          let playerColor2 = color(gridCell.snake.color2.r, gridCell.snake.color2.g, gridCell.snake.color2.b);
 
           let lerpAmount;
           if (gridCell.type === "body") {
-            lerpAmount = 1 - abs((gridCell.player.length - (gridCell.emptyFrame - snakeMoveFrame) - 1) % (gridCell.player.colorLength * 2) / gridCell.player.colorLength - 1);
+            lerpAmount = 1 - abs((gridCell.snake.length - (gridCell.emptyFrame - snakeMoveFrame) - 1) % (gridCell.snake.colorLength * 2) / gridCell.snake.colorLength - 1);
           }
           else {
             lerpAmount = 0;
@@ -162,7 +179,7 @@ function drawGrid() {
   
             for (let eyeX = -1; eyeX <= 1; eyeX += 2) {
               for (let eyeY = -1; eyeY <= 1; eyeY += 2) {
-                if (eyeX === gridCell.player.xSpeed || eyeY === gridCell.player.ySpeed) {
+                if (eyeX === gridCell.snake.xSpeed || eyeY === gridCell.snake.ySpeed) {
                   fill(255);
                   circle(headX + eyeX * eyeSize, headY + eyeY * eyeSize, eyeSize);
                   fill(0);
@@ -172,21 +189,38 @@ function drawGrid() {
             }
           }
         }
-        else if (gridCell.type === "wall") {
+        else if (gridCell.type === "food") {
           if ((x + y) % 2 === 0) {
-            fill(0);
+            fill(COLORS.empty1);
           }
           else {
-            fill(20);
+            fill(COLORS.empty2);
+          }
+          square(x * cellSize, y * cellSize, cellSize);
+          
+          let foodX = x * cellSize + cellSize / 2;
+          let foodY = y * cellSize + cellSize / 2;
+          let foodSize = cellSize / 2;
+          let foodColor = color(gridCell.color.r, gridCell.color.g, gridCell.color.b);
+
+          fill(foodColor);
+          circle(foodX, foodY, foodSize);
+        }
+        else if (gridCell.type === "wall") {
+          if ((x + y) % 2 === 0) {
+            fill(COLORS.wall1);
+          }
+          else {
+            fill(COLORS.wall2);
           }
           square(x * cellSize, y * cellSize, cellSize);
         }
         else if (gridCell.type === "empty") {
           if ((x + y) % 2 === 0) {
-            fill(220);
+            fill(COLORS.empty1);
           }
           else {
-            fill(240);
+            fill(COLORS.empty2);
           }
           square(x * cellSize, y * cellSize, cellSize);
         }
@@ -228,8 +262,8 @@ function newPlayer() {
     lastXSpeed: 0,
     lastYSpeed: 0,
     length: PLAYER_START_LENGTH,
-    color1: {r: random(200), g: random(200), b: random(200)},
-    color2: {r: random(200), g: random(200), b: random(200)},
+    color1: {r: random(COLORS.playerMin, COLORS.playerMax), g: random(COLORS.playerMin, COLORS.playerMax), b: random(COLORS.playerMin, COLORS.playerMax)},
+    color2: {r: random(COLORS.playerMin, COLORS.playerMax), g: random(COLORS.playerMin, COLORS.playerMax), b: random(COLORS.playerMin, COLORS.playerMax)},
     colorLength: floor(random(1, 5))
   };
   startPlayer.name = "P" + str(floor(random(1000)));
@@ -241,4 +275,18 @@ function newPlayer() {
 
   playerSnakes.push(startPlayer);
   snake = startPlayer;
+}
+
+function addFood(amount) {
+  for (let i = 0; i < amount; i ++) {
+    let foodX = undefined;
+    let foodY = undefined;
+
+    while (foodX === undefined || foodY === undefined || grid[foodY][foodX] !== CELL_EMPTY) {
+      foodX = floor(random(MAP_SIZE));
+      foodY = floor(random(MAP_SIZE));
+    }
+
+    grid[foodY][foodX] = {type: "food", color: {r: random(COLORS.playerMin, COLORS.playerMax), g: random(COLORS.playerMin, COLORS.playerMax), b: random(COLORS.playerMin, COLORS.playerMax)}};
+  }
 }
