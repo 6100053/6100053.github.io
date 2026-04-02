@@ -1,6 +1,6 @@
 // 2d Grid Game Assignment
 // Carsen Waters
-// April 13 2026
+// April ++ 2026
 //
 // Extras for Experts:
 // - PLACEHOLDER
@@ -17,17 +17,23 @@ const KEY_S = 83;
 const KEY_W = 87;
 
 const PLAYER_MOVE_TIME = 500;
-let playerMoveFrame = 0;
+let snakeMoveFrame = 0;
 
 let cellSize;
-const MAP_SIZE = 30;
-const VIEW_SIZE = 15;
+const MAP_SIZE = 50;
+const MAP_GENERATION_THRESHOLD = 0.15;
+const MAP_GENERATION_SCALE = 10;
+const VIEW_SIZE = 20;
 const CAMERA_SPEED = 0.02;
 
-const EMPTY_CELL = {type: "empty"};
+const CELL_EMPTY = {type: "empty"};
+const CELL_WALL = {type: "wall"};
+
+const PLAYER_START_LENGTH = 10;
 
 let grid;
-let player;
+let playerSnakes = [];
+let snake;
 let camera;
 
 function setup() {
@@ -35,10 +41,11 @@ function setup() {
   cellSize = windowSize / VIEW_SIZE;
   createCanvas(windowSize, windowSize);
   noStroke();
+  noiseDetail(1, 0);
 
-  grid = emptyGrid(MAP_SIZE);
-  player = newPlayer();
-  camera = {x: player.x, y: player.y, speed: CAMERA_SPEED};
+  grid = generateGrid(MAP_SIZE);
+  newPlayer();
+  camera = {x: snake.x, y: snake.y, speed: CAMERA_SPEED};
 }
 
 function windowResized() {
@@ -49,10 +56,10 @@ function windowResized() {
 
 function draw() {
   playerDirection();
-  if (millis() > playerMoveFrame * PLAYER_MOVE_TIME) {
-    movePlayer();
+  if (millis() > snakeMoveFrame * PLAYER_MOVE_TIME) {
+    moveSnake();
     updateCells();
-    playerMoveFrame += 1;
+    snakeMoveFrame += 1;
   }
   
   moveCamera();
@@ -60,21 +67,25 @@ function draw() {
 }
 
 function playerDirection() {
-  if (keyIsDown(KEY_UP) || keyIsDown(KEY_W)) {
-    player.xSpeed = 0;
-    player.ySpeed = -1;
+  if (!snake.alive) {
+    snake.xSpeed = 0;
+    snake.ySpeed = 0;
   }
-  else if (keyIsDown(KEY_DOWN) || keyIsDown(KEY_S)) {
-    player.xSpeed = 0;
-    player.ySpeed = 1;
+  else if ((keyIsDown(KEY_UP) || keyIsDown(KEY_W)) && snake.lastYSpeed < 1) {
+    snake.xSpeed = 0;
+    snake.ySpeed = -1;
   }
-  else if (keyIsDown(KEY_RIGHT) || keyIsDown(KEY_D)) {
-    player.xSpeed = 1;
-    player.ySpeed = 0;
+  else if ((keyIsDown(KEY_DOWN) || keyIsDown(KEY_S)) && snake.lastYSpeed > -1) {
+    snake.xSpeed = 0;
+    snake.ySpeed = 1;
   }
-  else if (keyIsDown(KEY_LEFT) || keyIsDown(KEY_A)) {
-    player.xSpeed = -1;
-    player.ySpeed = 0;
+  else if ((keyIsDown(KEY_LEFT) || keyIsDown(KEY_A)) && snake.lastXSpeed < 1) {
+    snake.xSpeed = -1;
+    snake.ySpeed = 0;
+  }
+  else if ((keyIsDown(KEY_RIGHT) || keyIsDown(KEY_D)) && snake.lastXSpeed > -1) {
+    snake.xSpeed = 1;
+    snake.ySpeed = 0;
   }
 }
 
@@ -83,28 +94,39 @@ function updateCells() {
     for (let x = 0; x < MAP_SIZE; x++) {
       let gridCell = grid[y][x];
       if (gridCell.type === "body") {
-        if (playerMoveFrame >= gridCell.emptyFrame) {
-          grid[y][x] = EMPTY_CELL;
+        if (snakeMoveFrame >= gridCell.emptyFrame || !gridCell.player.alive) {
+          grid[y][x] = CELL_EMPTY;
         }
       }
     }
   }
 }
 
-function movePlayer() {
-  grid[player.y][player.x] = {type: "body", player: player, emptyFrame: playerMoveFrame + player.length - 1};
+function moveSnake() {
+  if (snake.alive) {
+    grid[snake.y][snake.x] = {type: "body", player: snake, emptyFrame: snakeMoveFrame + snake.length - 1};
 
-  player.x += player.xSpeed;
-  player.y += player.ySpeed;
+    snake.x += snake.xSpeed;
+    snake.y += snake.ySpeed;
 
-  //Collision/interaction placeholder
+    snake.lastXSpeed = snake.xSpeed;
+    snake.lastYSpeed = snake.ySpeed;
 
-  grid[player.y][player.x] = {type: "head", player: player};
+    if (snake.xSpeed !== 0 || snake.ySpeed !== 0) {
+      if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === "wall" || grid[snake.y][snake.x].type === "body" && grid[snake.y][snake.x].emptyFrame > snakeMoveFrame) {
+        snake.alive = false;
+        newPlayer();
+      }
+      else {
+        grid[snake.y][snake.x] = {type: "head", player: snake};
+      }
+    }
+  }
 }
 
 function moveCamera() {
-  camera.x += (player.x - camera.x) * camera.speed;
-  camera.y += (player.y - camera.y) * camera.speed;
+  camera.x += (snake.x - camera.x) * camera.speed;
+  camera.y += (snake.y - camera.y) * camera.speed;
 }
 
 function drawGrid() {
@@ -122,10 +144,10 @@ function drawGrid() {
 
           let lerpAmount;
           if (gridCell.type === "body") {
-            lerpAmount = abs((gridCell.player.length - (gridCell.emptyFrame - playerMoveFrame)) % (gridCell.player.colorLength * 2) / gridCell.player.colorLength - 1);
+            lerpAmount = 1 - abs((gridCell.player.length - (gridCell.emptyFrame - snakeMoveFrame) - 1) % (gridCell.player.colorLength * 2) / gridCell.player.colorLength - 1);
           }
           else {
-            lerpAmount = abs((gridCell.player.length - (playerMoveFrame + gridCell.player.length - playerMoveFrame)) % (gridCell.player.colorLength * 2) / gridCell.player.colorLength - 1);
+            lerpAmount = 0;
           }
 
           let fillColor = lerpColor(playerColor1, playerColor2, lerpAmount);
@@ -150,6 +172,15 @@ function drawGrid() {
             }
           }
         }
+        else if (gridCell.type === "wall") {
+          if ((x + y) % 2 === 0) {
+            fill(0);
+          }
+          else {
+            fill(20);
+          }
+          square(x * cellSize, y * cellSize, cellSize);
+        }
         else if (gridCell.type === "empty") {
           if ((x + y) % 2 === 0) {
             fill(220);
@@ -170,27 +201,44 @@ function drawGrid() {
   }
 }
 
-function emptyGrid(size) {
+function generateGrid(size) {
   let newGrid = [];
   for (let y = 0; y < size; y++) {
     newGrid.push([]);
     for (let x = 0; x < size; x++) {
-      newGrid[y].push(EMPTY_CELL);
+      if (noise(x / MAP_GENERATION_SCALE, y / MAP_GENERATION_SCALE) < MAP_GENERATION_THRESHOLD || noise(x / MAP_GENERATION_SCALE, y / MAP_GENERATION_SCALE) > 1 - MAP_GENERATION_THRESHOLD) {
+        newGrid[y].push(CELL_WALL);
+      }
+      else {
+        newGrid[y].push(CELL_EMPTY);
+      }
     }
   }
   return newGrid;
 }
 
 function newPlayer() {
-  let startPlayer = {x: 0, y: 0, xSpeed: 0, ySpeed: 0, length: 10, color1: {r: 200, g: 0, b: 0}, color2: {r: 0, g: 200, b: 0}, colorLength: 3};
-  startPlayer.x = floor(random(MAP_SIZE));
-  startPlayer.y = floor(random(MAP_SIZE));
-  // startPlayer.color1.r = random(200);
-  // startPlayer.color1.g = random(200);
-  // startPlayer.color1.b = random(200);
-  // startPlayer.color2.r = random(200);
-  // startPlayer.color2.g = random(200);
-  // startPlayer.color2.b = random(200);
+  let startPlayer = {
+    alive: true,
+    name: undefined,
+    x: undefined,
+    y: undefined,
+    xSpeed: 0,
+    ySpeed: 0,
+    lastXSpeed: 0,
+    lastYSpeed: 0,
+    length: PLAYER_START_LENGTH,
+    color1: {r: random(200), g: random(200), b: random(200)},
+    color2: {r: random(200), g: random(200), b: random(200)},
+    colorLength: floor(random(1, 5))
+  };
+  startPlayer.name = "P" + str(floor(random(1000)));
 
-  return startPlayer;
+  while (startPlayer.x === undefined || startPlayer.y === undefined || grid[startPlayer.y][startPlayer.x] !== CELL_EMPTY) {
+    startPlayer.x = floor(random(MAP_SIZE));
+    startPlayer.y = floor(random(MAP_SIZE));
+  }
+
+  playerSnakes.push(startPlayer);
+  snake = startPlayer;
 }
