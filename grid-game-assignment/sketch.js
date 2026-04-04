@@ -4,11 +4,10 @@
 //
 // Extras for Experts:
 // - PLACEHOLDER
+// - Use of touches array for mobile controls
 
 //COMMENTS
-//mobile support
 //ask how many constants to make
-//big foods?
 
 const KEY_SPACE = 32;
 const KEY_LEFT = 37;
@@ -29,6 +28,8 @@ const COLORS = {
   snakeMax: 200,
   eye1: 255,
   eye2: 0,
+  lobbyBack: [255, 100],
+  lobbyText: 0,
 };
 
 const SNAKE_MOVE_TIME = 250;
@@ -38,20 +39,23 @@ let cellSize;
 const MAP_SIZE = 50;
 const MAP_GENERATION_THRESHOLD = 0.15;
 const MAP_GENERATION_SCALE = 10;
+
 const VIEW_SIZE = 20;
+const VIEW_LOBBY_SIZE = 30;
+const LOBBY_TEXT_SCALE = 0.0425;
 const CAMERA_SPEED = 0.03;
 
 const CELL_EMPTY = {type: "empty"};
 const CELL_WALL = {type: "wall"};
 
-const SNAKE_START_LENGTH = 3;
-
 const START_FOOD = 25;
 const FOOD_CHANCE_SPAWN = 0.2;
 const FOOD_CHANCE_DEATH = 0.5;
 
+const SNAKE_START_LENGTH = 3;
+let bestLength = 0;
+
 let grid;
-let playerSnakes = [];
 let snake;
 let camera;
 
@@ -62,7 +66,7 @@ function setup() {
   noiseDetail(1, 0);
 
   grid = generateGrid(MAP_SIZE);
-  snake = {alive: false, x: MAP_SIZE / 2, y: MAP_SIZE / 2};
+  snake = {alive: false, x: MAP_SIZE / 2, y: MAP_SIZE / 2, bodyLength: 0};
   camera = {x: snake.x, y: snake.y, size: VIEW_SIZE, sizeTarget: VIEW_SIZE, speed: CAMERA_SPEED};
   addRandomFood(START_FOOD);
 }
@@ -74,7 +78,7 @@ function windowResized() {
 
 function draw() {
   playerDirection();
-  if (!snake.alive && keyIsDown(KEY_SPACE)) {
+  if (!snake.alive && (keyIsDown(KEY_SPACE) || touches.length > 0)) {
     newSnake();
   }
   if (millis() > snakeMoveFrame * SNAKE_MOVE_TIME) {
@@ -96,19 +100,19 @@ function playerDirection() {
     snake.xSpeed = 0;
     snake.ySpeed = 0;
   }
-  else if ((keyIsDown(KEY_UP) || keyIsDown(KEY_W)) && snake.lastYSpeed < 1) {
+  else if ((keyIsDown(KEY_UP) || keyIsDown(KEY_W) || touches.length > 0 && touches[0].y < height * 0.25) && snake.lastYSpeed < 1) {
     snake.xSpeed = 0;
     snake.ySpeed = -1;
   }
-  else if ((keyIsDown(KEY_DOWN) || keyIsDown(KEY_S)) && snake.lastYSpeed > -1) {
+  else if ((keyIsDown(KEY_DOWN) || keyIsDown(KEY_S) || touches.length > 0 && touches[0].y > height * 0.75) && snake.lastYSpeed > -1) {
     snake.xSpeed = 0;
     snake.ySpeed = 1;
   }
-  else if ((keyIsDown(KEY_LEFT) || keyIsDown(KEY_A)) && snake.lastXSpeed < 1) {
+  else if ((keyIsDown(KEY_LEFT) || keyIsDown(KEY_A) || touches.length > 0 && touches[0].x < width * 0.25) && snake.lastXSpeed < 1) {
     snake.xSpeed = -1;
     snake.ySpeed = 0;
   }
-  else if ((keyIsDown(KEY_RIGHT) || keyIsDown(KEY_D)) && snake.lastXSpeed > -1) {
+  else if ((keyIsDown(KEY_RIGHT) || keyIsDown(KEY_D) || touches.length > 0 && touches[0].x > width * 0.75) && snake.lastXSpeed > -1) {
     snake.xSpeed = 1;
     snake.ySpeed = 0;
   }
@@ -144,6 +148,9 @@ function moveSnake() {
     if (snake.xSpeed !== 0 || snake.ySpeed !== 0) {
       if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === "wall" || grid[snake.y][snake.x].type === "body" && grid[snake.y][snake.x].emptyFrame > snakeMoveFrame) {
         snake.alive = false;
+        if (snake.bodyLength > bestLength) {
+          bestLength = snake.bodyLength;
+        }
       }
       else {
         let bodyHasFood = false;
@@ -163,7 +170,7 @@ function moveCamera() {
     camera.sizeTarget = VIEW_SIZE;
   }
   else {
-    camera.sizeTarget = VIEW_SIZE * 1.5;
+    camera.sizeTarget = VIEW_LOBBY_SIZE;
   }
 
   camera.x += (snake.x - camera.x) * camera.speed;
@@ -255,7 +262,12 @@ function drawGrid() {
 
       }
       else {
-        fill(50);
+        if ((x + y) % 2 === 0) {
+          fill(COLORS.wall1);
+        }
+        else {
+          fill(COLORS.wall2);
+        }
         square(x * cellSize, y * cellSize, cellSize);
       }
 
@@ -266,11 +278,20 @@ function drawGrid() {
 
 function drawInfo() {
   if (!snake.alive) {
-    background(255, 255, 255, 100);
+    background(COLORS.lobbyBack);
+
+    let infoText = "";
+    if (snake.bodyLength === 0) {
+      infoText = "Multiplayer Snake\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPress SPACE or touch to join\nUse ↑←↓→ or WASD or touch sides to move";
+    }
+    else {
+      infoText = "Multiplayer Snake\n\n\nYou died!\n\nLength: " + str(snake.bodyLength + 1) + "\nBest: " + str(bestLength + 1) + "\n\n\n\n\n\n\n\n\nPress SPACE or touch to join\nUse ↑←↓→ or WASD or touch sides to move";
+    }
+    
     textAlign(CENTER, CENTER);
-    textSize(cellSize * 1.75);
-    fill(0);
-    text("Multiplayer Snake\n\n\n\n\n\n\n\n\n\nPress SPACE to join\nUse ↑←↓→ or WASD to move", width / 2, height / 2);
+    textSize(width / camera.size * VIEW_LOBBY_SIZE * LOBBY_TEXT_SCALE);
+    fill(COLORS.lobbyText);
+    text(infoText, width / 2, height / 2);
   }
 }
 
@@ -315,8 +336,6 @@ function newSnake() {
       return;
     }
   }
-  
-  playerSnakes.push(startSnake);
   snake = startSnake;
 }
 
