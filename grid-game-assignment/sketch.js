@@ -3,12 +3,12 @@
 // April 15 2026
 //
 // Extras for Experts:
-// - PLACEHOLDER
+// - PLACEHOLDERp5 party
 // - Use of touches array for mobile controls
 
 //ask how many constants to make
 //frame buildup bug?
-
+//sync move frames between users (some kind of start time?)
 
 // Key code/player input constants
 const KEYS = {
@@ -38,19 +38,15 @@ const COLORS = {
   lobbyText: 0,
 };
 
-// Speed and counter of snake movement frames
-const SNAKE_MOVE_TIME = 250;
-let snakeMoveFrame = 0;
-
 // Game map generation constants
-const MAP_SIZE = 50;
+const MAP_SIZE = 30;
 const MAP_GENERATION_THRESHOLD = 0.15;
 const MAP_GENERATION_SCALE = 10;
 
 // Canvas display information such as size
 let cellSize;
 const VIEW_SIZE = 20;
-const VIEW_LOBBY_SIZE = 30;
+const VIEW_LOBBY_SIZE = 40;
 const LOBBY_TEXT_SCALE = 0.0425;
 const CAMERA_SPEED = 0.03;
 
@@ -67,10 +63,23 @@ const FOOD_CHANCE_DEATH = 0.5;
 const SNAKE_START_LENGTH = 3;
 let bestLength = 0;
 
+// Speed and counter of snake movement frames
+const SNAKE_MOVE_TIME = 250;
+let snakeMoveFrame;
+
 // Variables for the game grid, current snake, and display focus
 let grid;
 let snake;
 let camera;
+
+function preload() {
+  // Connect to server using p5.party library
+  partyConnect("wss://demoserver.p5party.org", "6100053-grid-game-assignment");
+
+  // Initialize the shared game grid and movement frame
+  grid = partyLoadShared("grid");
+  snakeMoveFrame = partyLoadShared("snakeMoveFrame");
+}
 
 function setup() {
   // Make a square canvas based on window size
@@ -78,8 +87,13 @@ function setup() {
   createCanvas(windowSize, windowSize);
   noStroke();
 
-  // Set up the game's map, a placeholder snake, the camera, and some starting food
-  grid = generateGrid(MAP_SIZE);
+  // If the client is the first to join an empty room, generate a new game map and reset the movement frame and millis counters
+  if (partyIsHost()) {
+    partySetShared(grid, {value: generateGrid(MAP_SIZE)});
+    partySetShared(snakeMoveFrame, {value: 0});
+  }
+
+  // Set up a placeholder snake, the camera, and some starting food
   snake = {alive: false, x: MAP_SIZE / 2, y: MAP_SIZE / 2, bodyLength: 0};
   camera = {x: snake.x, y: snake.y, size: VIEW_SIZE, sizeTarget: VIEW_SIZE, speed: CAMERA_SPEED};
   addRandomFood(START_FOOD);
@@ -98,13 +112,13 @@ function draw() {
     newSnake();
   }
   // If it's time for the next snake movement frame, run it and increment the current frame
-  if (millis() > snakeMoveFrame * SNAKE_MOVE_TIME) {
+  if (millis() > snakeMoveFrame.value * SNAKE_MOVE_TIME) {
     moveSnake();
     updateCells();
     if (random() < FOOD_CHANCE_SPAWN) {
       addRandomFood(1);
     }
-    snakeMoveFrame += 1;
+    snakeMoveFrame.value += 1;
   }
   
   moveCamera();
@@ -142,14 +156,14 @@ function updateCells() {
   // Check each cell of the grid
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
-      let gridCell = grid[y][x];
+      let gridCell = grid.value[y][x];
       if (gridCell.type === "body") {
         // Check snake body segments for if the snake has moved off or if they have died
-        if (snakeMoveFrame >= gridCell.emptyFrame || !gridCell.snake.alive) {
-          grid[y][x] = CELL_EMPTY;
+        if (snakeMoveFrame.value >= gridCell.emptyFrame || !snake.alive) {
+          grid.value[y][x] = CELL_EMPTY;
 
-          if (!gridCell.snake.alive && random() < FOOD_CHANCE_DEATH) {
-            grid[y][x] = {
+          if (!snake.alive && random() < FOOD_CHANCE_DEATH) {
+            grid.value[y][x] = {
               type: "food",
               color: {r: random(COLORS.snakeMin, COLORS.snakeMax), g: random(COLORS.snakeMin, COLORS.snakeMax), b: random(COLORS.snakeMin, COLORS.snakeMax)}
             };
@@ -164,12 +178,12 @@ function moveSnake() {
   // Only move the snake if it is alive
   if (snake.alive) {
     // Set the old location to a body segment
-    grid[snake.y][snake.x] = {
+    grid.value[snake.y][snake.x] = {
       type: "body",
-      snake: snake,
-      emptyFrame: snakeMoveFrame + snake.bodyLength,
+      snake: structuredClone(snake),
+      emptyFrame: snakeMoveFrame.value + snake.bodyLength,
       currentBodyLength: structuredClone(snake.bodyLength),
-      hasFood: grid[snake.y][snake.x].hasFood
+      hasFood: grid.value[snake.y][snake.x].hasFood
     };
 
     // Move the snake
@@ -182,7 +196,7 @@ function moveSnake() {
     // If the snake moved to a new square
     if (snake.xSpeed !== 0 || snake.ySpeed !== 0) {
       // Check for collisions with map border, walls, other snakes
-      if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === "wall" || grid[snake.y][snake.x].type === "body" && grid[snake.y][snake.x].emptyFrame > snakeMoveFrame) {
+      if (snake.y < 0 || snake.y >= grid.value.length || snake.x < 0 || snake.x >= grid.value[snake.y].length || grid.value[snake.y][snake.x].type === "wall" || grid.value[snake.y][snake.x].type === "body" && grid.value[snake.y][snake.x].emptyFrame > snakeMoveFrame.value) {
         snake.alive = false;
         if (snake.bodyLength > bestLength) {
           bestLength = snake.bodyLength;
@@ -191,14 +205,14 @@ function moveSnake() {
       else {
       // If there was no collision add the head in the new spot
         let bodyHasFood = false;
-        if (grid[snake.y][snake.x].type === "food") {
+        if (grid.value[snake.y][snake.x].type === "food") {
           bodyHasFood = true;
           snake.bodyLength += 1;
         }
 
-        grid[snake.y][snake.x] = {
+        grid.value[snake.y][snake.x] = {
           type: "head",
-          snake: snake,
+          snake: structuredClone(snake),
           hasFood: bodyHasFood
         };
       }
@@ -233,7 +247,7 @@ function drawGrid() {
 
       if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE) {
         // If the cell exists in the map, check its type
-        let gridCell = grid[y][x];
+        let gridCell = grid.value[y][x];
 
         if (gridCell.type === "head" || gridCell.type === "body") {
           // If the cell is part of a snake, find its color to draw it
@@ -242,7 +256,7 @@ function drawGrid() {
 
           let lerpAmount;
           if (gridCell.type === "body") {
-            lerpAmount = 1 - abs((gridCell.currentBodyLength - (gridCell.emptyFrame - snakeMoveFrame)) % (gridCell.snake.colorLength * 2) / gridCell.snake.colorLength - 1);
+            lerpAmount = 1 - abs((gridCell.currentBodyLength - (gridCell.emptyFrame - snakeMoveFrame.value)) % (gridCell.snake.colorLength * 2) / gridCell.snake.colorLength - 1);
           }
           else {
             lerpAmount = 0;
@@ -381,7 +395,7 @@ function newSnake() {
 
   // Try to set the snake's spawn position, if no empty cell is found after most of the map is checked, don't start the new snake
   let attempts = 0;
-  while (startSnake.x === undefined || startSnake.y === undefined || grid[startSnake.y][startSnake.x] !== CELL_EMPTY) {
+  while (startSnake.x === undefined || startSnake.y === undefined || grid.value[startSnake.y][startSnake.x].type !== "empty") {
     startSnake.x = floor(random(MAP_SIZE));
     startSnake.y = floor(random(MAP_SIZE));
 
@@ -401,7 +415,7 @@ function addRandomFood(amount) {
 
     // Try to set the food position, if no empty cell is found after multiple locations are checked, don't add it
     let attempts = 0;
-    while (foodX === undefined || foodY === undefined || grid[foodY][foodX] !== CELL_EMPTY) {
+    while (foodX === undefined || foodY === undefined || grid.value[foodY][foodX].type !== "empty") {
       foodX = floor(random(MAP_SIZE));
       foodY = floor(random(MAP_SIZE));
 
@@ -412,7 +426,7 @@ function addRandomFood(amount) {
     }
 
     // Add a random food at the empty location
-    grid[foodY][foodX] = {
+    grid.value[foodY][foodX] = {
       type: "food",
       color: {r: random(COLORS.snakeMin, COLORS.snakeMax), g: random(COLORS.snakeMin, COLORS.snakeMax), b: random(COLORS.snakeMin, COLORS.snakeMax)}
     };
