@@ -8,7 +8,8 @@
 
 //ask how many constants to make
 //frame buildup bug?
-//sync move frames between users (some kind of start time?)
+//fix writing conflicts (have host move all snakes? use myshared objects/list of snakes)
+//not all players adding food?
 
 // Key code/player input constants
 const KEYS = {
@@ -66,6 +67,7 @@ let bestLength = 0;
 // Speed and counter of snake movement frames
 const SNAKE_MOVE_TIME = 250;
 let snakeMoveFrame;
+let serverStartTime;
 
 // Variables for the game grid, current snake, and display focus
 let grid;
@@ -79,6 +81,7 @@ function preload() {
   // Initialize the shared game grid and movement frame
   grid = partyLoadShared("grid");
   snakeMoveFrame = partyLoadShared("snakeMoveFrame");
+  serverStartTime = partyLoadShared("serverStartTime");
 }
 
 function setup() {
@@ -87,10 +90,11 @@ function setup() {
   createCanvas(windowSize, windowSize);
   noStroke();
 
-  // If the client is the first to join an empty room, generate a new game map and reset the movement frame and millis counters
+  // If the client is the first to join an empty room, generate a new game map, reset the movement frame and store the start time
   if (partyIsHost()) {
     partySetShared(grid, {value: generateGrid(MAP_SIZE)});
     partySetShared(snakeMoveFrame, {value: 0});
+    partySetShared(serverStartTime, {value: Date.now()});
   }
 
   // Set up a placeholder snake, the camera, and some starting food
@@ -112,7 +116,7 @@ function draw() {
     newSnake();
   }
   // If it's time for the next snake movement frame, run it and increment the current frame
-  if (millis() > snakeMoveFrame.value * SNAKE_MOVE_TIME) {
+  if (Date.now() - serverStartTime.value > snakeMoveFrame.value * SNAKE_MOVE_TIME) {
     moveSnake();
     updateCells();
     if (random() < FOOD_CHANCE_SPAWN) {
