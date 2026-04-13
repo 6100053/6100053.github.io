@@ -5,9 +5,11 @@
 // Extras for Experts:
 // - p5.party library for multiplayer connection
 // - Use of touches array for mobile controls
+// - Date.now() used for movement frame timing so the project doesn't rely on clients' millis() values
+// - Window resizing while project is running using windowResized
 
-//ask how many constants to make
 //more background colors?
+//fix tail collide thing
 
 
 // Key code/player input constants
@@ -22,7 +24,7 @@ const KEYS = {
   s: 83,
   w: 87,
 };
-const SIDE_TOUCH_THRESHOLD = 0.25;
+const SIDE_TOUCH_THRESHOLD = 0.3;
 
 // Colors for drawing the game
 const COLORS = {
@@ -46,13 +48,20 @@ const MAP_GENERATION_SCALE = 10;
 // Canvas display information such as size
 let cellSize;
 const VIEW_SIZE = 20;
-const VIEW_LOBBY_SIZE = 30;
+const VIEW_LOBBY_SIZE = 40;
 const LOBBY_TEXT_SCALE = 0.0425;
 const CAMERA_SPEED = 0.03;
 
+// Cell type constants
+const TYPE_EMPTY = "empty";
+const TYPE_WALL = "wall";
+const TYPE_HEAD = "head";
+const TYPE_BODY = "body";
+const TYPE_FOOD = "food";
+
 // Grid cell constants
-const CELL_EMPTY = {type: "empty"};
-const CELL_WALL = {type: "wall"};
+const CELL_EMPTY = {type: TYPE_EMPTY};
+const CELL_WALL = {type: TYPE_WALL};
 
 // Food spawning constants
 const START_FOOD = 100;
@@ -163,14 +172,14 @@ function updateCells() {
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       let gridCell = grid[y][x];
-      if (gridCell.type === "body" && gridCell.snake.id === snake.id) {
+      if (gridCell.type === TYPE_BODY && gridCell.snake.id === snake.id) {
         // Check our own snake body segments for if the snake has moved off or if they have died
         if (snakeMoveFrame >= gridCell.emptyFrame || !snake.alive) {
           partySetShared(grid[y][x], CELL_EMPTY);
 
           if (!snake.alive && random() < FOOD_CHANCE_DEATH) {
             partySetShared(grid[y][x], {
-              type: "food",
+              type: TYPE_FOOD,
               color: {r: random(COLORS.snakeMin, COLORS.snakeMax), g: random(COLORS.snakeMin, COLORS.snakeMax), b: random(COLORS.snakeMin, COLORS.snakeMax)}
             });
           }
@@ -185,7 +194,7 @@ function moveSnake() {
   if (snake.alive) {
     // Set the old location to a body segment
     partySetShared(grid[snake.y][snake.x], {
-      type: "body",
+      type: TYPE_BODY,
       snake: structuredClone(snake),
       emptyFrame: snakeMoveFrame + snake.bodyLength,
       currentBodyLength: structuredClone(snake.bodyLength),
@@ -202,7 +211,7 @@ function moveSnake() {
     // If the snake moved to a new square
     if (snake.xSpeed !== 0 || snake.ySpeed !== 0) {
       // Check for collisions with map border, walls, other snakes
-      if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === "wall" || (grid[snake.y][snake.x].type === "head" || grid[snake.y][snake.x].type === "body") && grid[snake.y][snake.x].emptyFrame > snakeMoveFrame) {
+      if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === TYPE_WALL || (grid[snake.y][snake.x].type === TYPE_HEAD || grid[snake.y][snake.x].type === TYPE_BODY) /*&& grid[snake.y][snake.x].emptyFrame > snakeMoveFrame*/) {//FIX SO THAT IT ONLY IGNORES OWN TAIL END (or other tail ends?)
         snake.alive = false;
         if (snake.bodyLength > bestLength) {
           bestLength = snake.bodyLength;
@@ -211,13 +220,13 @@ function moveSnake() {
       else {
       // If there was no collision add the head in the new spot
         let bodyHasFood = false;
-        if (grid[snake.y][snake.x].type === "food") {
+        if (grid[snake.y][snake.x].type === TYPE_FOOD) {
           bodyHasFood = true;
           snake.bodyLength += 1;
         }
 
         partySetShared(grid[snake.y][snake.x], {
-          type: "head",
+          type: TYPE_HEAD,
           snake: structuredClone(snake),
           hasFood: bodyHasFood
         });
@@ -255,13 +264,13 @@ function drawGrid() {
         // If the cell exists in the map, check its type
         let gridCell = grid[y][x];
 
-        if (gridCell.type === "head" || gridCell.type === "body") {
+        if (gridCell.type === TYPE_HEAD || gridCell.type === TYPE_BODY) {
           // If the cell is part of a snake, find its color to draw it
           let playerColor1 = color(gridCell.snake.color1.r, gridCell.snake.color1.g, gridCell.snake.color1.b);
           let playerColor2 = color(gridCell.snake.color2.r, gridCell.snake.color2.g, gridCell.snake.color2.b);
 
           let lerpAmount;
-          if (gridCell.type === "body") {
+          if (gridCell.type === TYPE_BODY) {
             lerpAmount = 1 - abs((gridCell.currentBodyLength - (gridCell.emptyFrame - snakeMoveFrame)) % (gridCell.snake.colorLength * 2) / gridCell.snake.colorLength - 1);
           }
           else {
@@ -279,7 +288,7 @@ function drawGrid() {
             circle(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, cellSize / 2);
           }
   
-          if (gridCell.type === "head") {
+          if (gridCell.type === TYPE_HEAD) {
             // The snake's eyes
             let headX = x * cellSize + cellSize / 2;
             let headY = y * cellSize + cellSize / 2;
@@ -297,7 +306,7 @@ function drawGrid() {
             }
           }
         }
-        else if (gridCell.type === "empty" || gridCell.type === "food") {
+        else if (gridCell.type === TYPE_EMPTY || gridCell.type === TYPE_FOOD) {
           // For an open cell, draw it with the empty cell colors, based on a checkerboard pattern
           if ((x + y) % 2 === 0) {
             fill(COLORS.empty1);
@@ -307,13 +316,13 @@ function drawGrid() {
           }
           square(x * cellSize, y * cellSize, cellSize);
 
-          if (gridCell.type === "food") {
+          if (gridCell.type === TYPE_FOOD) {
             // If there's food draw it as a circle
             fill(gridCell.color.r, gridCell.color.g, gridCell.color.b);
             circle(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, cellSize / 2);
           }
         }
-        else if (gridCell.type === "wall") {
+        else if (gridCell.type === TYPE_WALL) {
           // Color the wall cells using a checkerboard pattern
           if ((x + y) % 2 === 0) {
             fill(COLORS.wall1);
@@ -399,7 +408,7 @@ function newSnake() {
 
   // Try to set the snake's spawn position, if no empty cell is found after most of the map is checked, don't start the new snake
   let attempts = 0;
-  while (startSnake.x === undefined || startSnake.y === undefined || grid[startSnake.y][startSnake.x].type !== "empty") {
+  while (startSnake.x === undefined || startSnake.y === undefined || grid[startSnake.y][startSnake.x].type !== TYPE_EMPTY) {
     startSnake.x = floor(random(MAP_SIZE));
     startSnake.y = floor(random(MAP_SIZE));
 
@@ -419,7 +428,7 @@ function addRandomFood(amount) {
 
     // Try to set the food position, if no empty cell is found after multiple locations are checked, don't add it
     let attempts = 0;
-    while (foodX === undefined || foodY === undefined || grid[foodY][foodX].type !== "empty") {
+    while (foodX === undefined || foodY === undefined || grid[foodY][foodX].type !== TYPE_EMPTY) {
       foodX = floor(random(MAP_SIZE));
       foodY = floor(random(MAP_SIZE));
 
@@ -431,7 +440,7 @@ function addRandomFood(amount) {
 
     // Add a random food at the empty location
     partySetShared(grid[foodY][foodX], {
-      type: "food",
+      type: TYPE_FOOD,
       color: {r: random(COLORS.snakeMin, COLORS.snakeMax), g: random(COLORS.snakeMin, COLORS.snakeMax), b: random(COLORS.snakeMin, COLORS.snakeMax)}
     });
   }
