@@ -44,7 +44,7 @@ const MAP_GENERATION_SCALE = 10;
 
 // Canvas display information such as size
 let cellSize;
-const VIEW_SIZE = 20;
+const VIEW_SIZE = 25;
 const VIEW_LOBBY_SIZE = 40;
 const LOBBY_TEXT_SCALE = 0.0425;
 const CAMERA_SPEED = 0.03;
