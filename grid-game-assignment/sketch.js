@@ -8,9 +8,6 @@
 // - Date.now() used for movement frame timing so the project doesn't rely on clients' millis() values
 // - Window resizing while project is running using windowResized
 
-//more background colors?
-//fix tail collide thing
-
 
 // Key code/player input constants
 const KEYS = {
@@ -211,7 +208,7 @@ function moveSnake() {
     // If the snake moved to a new square
     if (snake.xSpeed !== 0 || snake.ySpeed !== 0) {
       // Check for collisions with map border, walls, other snakes
-      if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === TYPE_WALL || (grid[snake.y][snake.x].type === TYPE_HEAD || grid[snake.y][snake.x].type === TYPE_BODY) /*&& grid[snake.y][snake.x].emptyFrame > snakeMoveFrame*/) {//FIX SO THAT IT ONLY IGNORES OWN TAIL END (or other tail ends?)
+      if (snake.y < 0 || snake.y >= grid.length || snake.x < 0 || snake.x >= grid[snake.y].length || grid[snake.y][snake.x].type === TYPE_WALL || (grid[snake.y][snake.x].type === TYPE_HEAD || grid[snake.y][snake.x].type === TYPE_BODY) && (grid[snake.y][snake.x].snake.id === snake.id && grid[snake.y][snake.x].emptyFrame > snakeMoveFrame || grid[snake.y][snake.x].snake.id !== snake.id)) {
         snake.alive = false;
         if (snake.bodyLength > bestLength) {
           bestLength = snake.bodyLength;
@@ -248,6 +245,7 @@ function moveCamera() {
   camera.y += (snake.y - camera.y) * camera.speed;
   camera.size += (camera.sizeTarget - camera.size) * camera.speed;
 
+  // Recalculate new cell display size
   cellSize = width / camera.size;
 }
 
