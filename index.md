@@ -10,9 +10,11 @@
 - [2d Grid](07-2d-grid)
 - [Rectangular Grid](08-rect-grid)
 - [Game of Life](09-life)
-- [Grid with character](10-grid-character)
+- [Grid with Character](10-grid-character)
+- [Text Files](11-platformer-files)
+- [OOP Walker](12-walker)
 
-## Assignments (Mostly working towards my SDS)
+## Assignments
 - [Interactive Scene (SDS Prototype 1)](interactive-scene-assignment)
 - [Arrays and Object Notation (SDS Prototype 2)](array-object-assignment)
 - [2d Grid Game](grid-game-assignment)
