@@ -13,6 +13,7 @@
 - [Grid with Character](10-grid-character)
 - [Text Files](11-platformer-files)
 - [OOP Walker](12-walker)
+- [OOP Fireworks](13-fireworks)
 
 ## Assignments
 - [Interactive Scene (SDS Prototype 1)](interactive-scene-assignment)

@@ -4,15 +4,14 @@ class Walker {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.diameter = 5;
     this.speed = 5;
-    this.color = "red";
+    this.color = "blue";
   }
 
   display() {
     fill(this.color);
     noStroke();
-    circle(this.x, this.y, this.diameter);
+    circle(this.x, this.y, this.speed);
   }
 
   move() {
@@ -32,22 +31,46 @@ class Walker {
   }
 }
 
-let berry;
-let herb;
+let allWalkers = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(100);
-  berry = new Walker(width/2, height/2);
-  herb = new Walker(width/4, height/2);
-  herb.color = "blue";
 }
 
 function draw() {
-  berry.move();
-  herb.move();
-
   background(100, 10);
-  berry.display();
-  herb.display();
+  for (let walker of allWalkers) {
+    walker.move();
+    walker.display();
+  }
 }
+
+function mousePressed() {
+  let walker = new Walker(mouseX, mouseY);
+  walker.color = color(random(255), random(255), random(255));
+  walker.speed = random(5, 10);
+  allWalkers.push(walker);
+}
+
+// Version with 2 walkers
+
+// let berry;
+// let herb;
+
+// function setup() {
+//   createCanvas(windowWidth, windowHeight);
+//   background(100);
+//   berry = new Walker(width/2, height/2);
+//   herb = new Walker(width/4, height/2);
+//   herb.color = "blue";
+// }
+
+// function draw() {
+//   berry.move();
+//   herb.move();
+
+//   background(100, 10);
+//   berry.display();
+//   herb.display();
+// }
