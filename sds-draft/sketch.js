@@ -5,8 +5,32 @@
 // Extras for Experts:
 // -Placeholder also maybe other SDS requirements
 
-// (possible things to add: portal info, world features, constants(keycodes), data files?)
+// (possible things to add: portal info, level progress/completion/fail, world features?, data files, attacks etc(later), music(later))
 
+
+//////// Constants //////// (hdfljfdhdlkafhjd i might need to organize differently)
+
+// Key codes
+const KEYS = {
+  left: 37,
+  up: 38,
+  right: 39,
+  down: 40,
+  a: 65,
+  d: 68,
+  s: 83,
+  w: 87,
+};
+
+// Game states
+const STATES = {
+  world: "world",
+  level: "level",
+};
+
+//shapes???
+//player size etc??
+//pending state string
 
 //////// Data for the game's world levels ////////
 
@@ -92,7 +116,7 @@ function setup() {
   angleMode(DEGREES);
   colorMode(HSB);
 
-  setGameState("world");
+  setGameState(STATES.world);
 }
 
 function windowResized() {
@@ -101,7 +125,7 @@ function windowResized() {
 }
 
 function draw() {
-  if (gameState === "world") {
+  if (gameState === STATES.world) {
     if (!transition.active) {
       movePlayer();
       checkPortals();
@@ -113,7 +137,7 @@ function draw() {
     drawPortals();
     drawPlayer();
     
-  } else if (gameState === "level") {
+  } else if (gameState === STATES.level) {
     if (!transition.active) {
       levelProgress();
       moveCapsule();
@@ -145,11 +169,11 @@ function setGameState(state, level = []) {
   // Change the game state and set up the new state
   gameState = state;
 
-  if (state === "world") {
+  if (state === STATES.world) {
     player = worldPlayer;
     backdrop = {shape: "circle", spacing: 100, size: 50, angle: 0, backColor: {h: 0, s: 0, b: 0}, frontColor: {h: 0, s: 0, b: 10}};
     
-  } else if (state === "level") {
+  } else if (state === STATES.level) {
     worldPlayer = structuredClone(player);
     
     player = {x: 0, y: 0, size: 10, speed: 5, color: {h: 0, s: 0, b: 100}};
@@ -178,13 +202,13 @@ function beatsToMillis(beats, bpm) {
 
 function movePlayer() {
   // Right arrow or D key
-  let inputRight = keyIsDown(39) || keyIsDown(68);
+  let inputRight = keyIsDown(KEYS.right) || keyIsDown(KEYS.d);
   // Left arrow or A key
-  let inputLeft = keyIsDown(37) || keyIsDown(65);
+  let inputLeft = keyIsDown(KEYS.left) || keyIsDown(KEYS.a);
   // Down arrow or S key
-  let inputDown = keyIsDown(40) || keyIsDown(83);
+  let inputDown = keyIsDown(KEYS.down) || keyIsDown(KEYS.s);
   // Up arrow or W key
-  let inputUp = keyIsDown(38) || keyIsDown(87);
+  let inputUp = keyIsDown(KEYS.up) || keyIsDown(KEYS.w);
 
   // Convert input into movement direction
   let angle = inputRight * 360 * inputUp + inputLeft * 180 + inputDown * 90 + inputUp * 270;
@@ -192,8 +216,8 @@ function movePlayer() {
     angle = angle / 2;
   }
 
-  if (gameState === "world") {
-    // Collide with world border
+  if (gameState === STATES.world) {
+    // Move player and collide with world border
     if (inputRight !== inputLeft || inputDown !== inputUp) {
       player.x += cos(angle) * player.speed;
       if (collideRectPoly(player.x - player.size / 2, player.y - player.size / 2, player.size, player.size, worldBorder.corners)) {
@@ -205,7 +229,8 @@ function movePlayer() {
       }
     }
 
-  } else if (gameState === "level") {
+  } else if (gameState === STATES.level) {
+    // Move player
     if (inputRight !== inputLeft || inputDown !== inputUp) {
       player.x += cos(angle) * player.speed;
       player.y += sin(angle) * player.speed;
@@ -224,10 +249,10 @@ function prepareDrawing() {
   scale(screenSize / viewSize);
 
   // Translate the scene so everything is centered on the player (in world state) or the capsule (in game state)
-  if (gameState === "world") {
+  if (gameState === STATES.world) {
     translate(viewSize/2 - player.x, viewSize/2 - player.y);
 
-  } else if (gameState === "level") {
+  } else if (gameState === STATES.level) {
     translate(viewSize/2 - levelState.capsule.x, viewSize/2 - levelState.capsule.y);
 
   }
@@ -240,13 +265,13 @@ function drawBackground() {
   let frontColorH;
   let backColorH;
 
-  if (gameState === "world") {
+  if (gameState === STATES.world) {
     focusX = player.x;
     focusY = player.y;
     frontColorH = backdrop.frontColor.h;
     backColorH = backdrop.backColor.h;
 
-  } else if (gameState === "level") {
+  } else if (gameState === STATES.level) {
     focusX = levelState.capsule.x;
     focusY = levelState.capsule.y;
     frontColorH = levelState.levelObject.colorH;
@@ -312,7 +337,7 @@ function checkPortals() {
       portal.playerHover = true;
 
       if (mouseIsPressed) {
-        pendGameState("level", portal.level);
+        pendGameState(STATES.level, portal.level);
       }
     } else {
       portal.playerHover = false;
@@ -371,7 +396,7 @@ function levelProgress() {
 
       } else {
         // If the last node in the level has been passed, exit to the world state
-        pendGameState("world", 0);
+        pendGameState(STATES.world, 0);
       }
       
     } else {
