@@ -20,17 +20,19 @@ class Particle {
   }
 
   update() {
-    this.dy += 0.2;
-
     this.x += this.dx;
     this.y += this.dy;
 
     this.a -= 1;
   }
+
+  isDead() {
+    return this.a <= 0;
+  }
 }
 
 let allFireworks = [];
-const CLICK_PARTICLES = 100;
+const CLICK_PARTICLES = 25;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -39,9 +41,17 @@ function setup() {
 function draw() {
   background(0);
   for (let firework of allFireworks) {
-    firework.update();
-    firework.display();
+    if (firework.isDead()) {
+      let index = allFireworks.indexOf(firework);
+      allFireworks.splice(index, 1);
+    }
+    else {
+      firework.update();
+      firework.display();
+    }
   }
+
+  //mousePressed();
 }
 
 function mousePressed() {
