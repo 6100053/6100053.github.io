@@ -14,6 +14,7 @@
 - [Text Files](11-platformer-files)
 - [OOP Walker](12-walker)
 - [OOP Fireworks](13-fireworks)
+- [OOP Ball Collision](14-ball-collision)
 
 ## Assignments
 - [Interactive Scene (SDS Prototype 1)](interactive-scene-assignment)
