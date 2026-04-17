@@ -1,6 +1,6 @@
 // Draft of my SDS
 // Carsen Waters
-// Mmmmm DD 2026
+// Moved to major project repository April 17, 2026
 //
 // Extras for Experts:
 // -Placeholder also maybe other SDS requirements
@@ -8,7 +8,7 @@
 // (possible things to add: portal info, level progress/completion/fail, world features?, data files, attacks etc(later), music(later))
 
 
-//////// Constants //////// (hdfljfdhdlkafhjd i might need to organize differently)
+//////// Constants ////////
 
 // Key codes
 const KEYS = {
