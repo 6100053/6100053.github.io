@@ -17,8 +17,8 @@
 - [OOP Ball Collision](14-ball-collision)
 
 ## Assignments
-- [Interactive Scene (SDS Prototype 1)](interactive-scene-assignment)
-- [Arrays and Object Notation (SDS Prototype 2)](array-object-assignment)
+- [Interactive Scene (Major Project Prototype 1)](interactive-scene-assignment)
+- [Arrays and Object Notation (Major Project Prototype 2)](array-object-assignment)
 - [2d Grid Game](grid-game-assignment)
 - [Major Project Draft](sds-draft)
 - [Major Project](https://6100053.github.io/essence-frequency)
