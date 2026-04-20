@@ -15,6 +15,7 @@
 - [OOP Walker](12-walker)
 - [OOP Fireworks](13-fireworks)
 - [OOP Ball Collision](14-ball-collision)
+- [OOP Connected Nodes](15-nodes)
 
 ## Assignments
 - [Interactive Scene (Major Project Prototype 1)](interactive-scene-assignment)
