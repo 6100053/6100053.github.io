@@ -18,6 +18,7 @@
 - [OOP Connected Nodes](15-nodes)
 - [OOP Inheritance](16-inheritance)
 - [Collide2d Library](17-collide2d)
+- [Recursive Circles](18-recursion)
 
 ## Assignments
 - [Interactive Scene (Major Project Prototype 1)](interactive-scene-assignment)
