@@ -19,6 +19,7 @@
 - [OOP Inheritance](16-inheritance)
 - [Collide2d Library](17-collide2d)
 - [Recursive Circles](18-recursion)
+- [Triangle Recursion](19-triangle)
 
 ## Assignments
 - [Interactive Scene (Major Project Prototype 1)](interactive-scene-assignment)
