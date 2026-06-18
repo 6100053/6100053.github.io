@@ -27,6 +27,7 @@
 - [2d Grid Game](grid-game-assignment)
 - [Major Project Draft](sds-draft)
 - [Major Project](https://6100053.github.io/essence-frequency)
+- [Final Programming Challenge](final-challenge)
 
 ## [p5js Web Editor projects](https://editor.p5js.org/6100053/sketches)
 - [CSC30 Activities](https://editor.p5js.org/6100053/collections/r0UlQFdCI)
